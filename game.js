@@ -13,17 +13,16 @@ preload ()
 create ()
 {
   console.log("My Message");
-  
-	// input keys
-	this.keySpacebar = this.game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
 
+	game.physics.startSystem(Phaser.Physics.ARCADE);
+  
 	this.bg = game.add.sprite(0, 0, 'bg')
 
-	game.physics.startSystem(Phaser.Physics.P2JS)
-	game.physics.p2.gravity.y = 320;
-	game.physics.p2.friction = 0.4;
-	game.physics.p2.applyDamping = true;
-	game.physics.p2.setImpactEvents(true);
+	//game.physics.startSystem(Phaser.Physics.P2JS)
+	//game.physics.p2.gravity.y = 320;
+	//game.physics.p2.friction = 0.4;
+	//game.physics.p2.applyDamping = true;
+	//game.physics.p2.setImpactEvents(true);
 
 	game.world.setBounds(0, 0, 512, 864);
 	game.camera.scale.setTo(2);
@@ -40,10 +39,10 @@ create ()
 	this.debugText.exists = false;
 
 	// gore emitter
-	//this.goreEmitter = game.add.emitter(0, 0, 100);
-	//this.goreEmitter.makeParticles('gore', [0,1,2,3,4,5,6], 300);
-	//this.goreEmitter.gravity = 200;
-	//this.goreEmitter.setXSpeed(-300,-100);
+	this.goreEmitter = game.add.emitter(0, 0, 100);
+	this.goreEmitter.makeParticles('gore', [0,1,2,3,4,5,6], 300);
+	this.goreEmitter.gravity = 200;
+	this.goreEmitter.setXSpeed(-300,-100);
 
 	
 	//define soundeffects
