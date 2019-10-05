@@ -1,4 +1,42 @@
-//TODO drag into ground -> animation changes
+
+class StaticObject extends Phaser.Sprite
+{
+	constructor(x, y, sprite)
+	{
+		super(game, x, y, sprite)
+		game.physics.p2.enable(this, true);
+		this.body.clearShapes();
+		this.animations.add('idle', [0,1,2,3], 4, true);
+		this.animations.play('idle');
+	}
+}
+
+class Corpse extends StaticObject
+{
+	constructor(x, y)
+	{
+		super(x, y, 'corpse');
+		this.body.addRectangle(32, 32, 0, 0);
+		this.time = 0;
+	}
+
+	update()
+	{
+		this.time += game.time.elapsed;
+		if (this.time > 5000) {
+			game.state.getCurrentState().spawnMaggot(this);
+		}
+	}
+}
+
+class CorpseZombie extends StaticObject
+{
+	constructor(x, y)
+	{
+		super(x, y, 'corpsezombie');
+		this.body.addRectangle(32, 32, 0, 0);
+	}
+}
 
 class DraggableObject extends Phaser.Sprite
 {
@@ -21,7 +59,7 @@ class DraggableObject extends Phaser.Sprite
 
 		this.isOnGround = true;
 	}
-	
+
 	update()
 	{
 		if (this.isOnGround)
@@ -29,7 +67,17 @@ class DraggableObject extends Phaser.Sprite
 			//console.log("ON GROUND");
 			this.body.rotation = 0;
 		}
+		this.prevY = this.body.velocity.y;
 		//else console.log("NOT");
+	}
+}
+
+class Maggot extends DraggableObject
+{
+	constructor(x, y)
+	{
+		super(x, y, 'maggot');
+		this.body.addRectangle(32, 32, 0, 0);
 	}
 }
 
@@ -85,12 +133,51 @@ class GameState extends Phaser.State
 	{
 		game.load.image('bg', 'gfx/background.png');
 		game.load.spritesheet("cow", 'gfx/cow.png', 32, 32);
+		game.load.spritesheet("corpse", 'gfx/corpse.png', 32, 32);
+		game.load.spritesheet("corpsezombie", 'gfx/corpse_zombie.png', 32, 32);
 		game.load.spritesheet("cowzombie", 'gfx/cow_zombie.png', 32, 32);
+		game.load.spritesheet("maggot", 'gfx/maggot.png', 32, 32);
 		game.load.spritesheet('gore', 'gfx/gore.png', 16, 16);
 		
 		//game.load.spritesheet('propeller', 'gfx/propeller.png', 16, 64, 4);
 		game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
 		//game.load.audio('music', 'sfx/theme.ogg');
+	}
+
+	spawnCorpse(obj)
+	{
+		var corpse = new Corpse(obj.x, obj.y);
+		corpse.body.setCollisionGroup(this.staticCG);
+		this.staticGroup.add(corpse);
+		corpse.body.collides(this.bgCG);
+		obj.destroy();
+	}
+
+	spawnCorpseZombie(obj)
+	{
+		var corpsez = new CorpseZombie(obj.x, obj.y);
+		corpsez.body.setCollisionGroup(this.staticCG);
+		this.staticGroup.add(corpsez);
+		corpsez.body.collides(this.bgCG);
+		obj.destroy();
+	}
+
+	spawnMaggot(obj)
+	{
+		var maggot = new Maggot(obj.x, obj.y);
+		maggot.body.setCollisionGroup(this.livingCG);
+		this.livingGroup.add(maggot);
+		maggot.body.collides(this.bgCG);
+		obj.destroy();
+	}
+
+	spawnCow(x, y)
+	{
+		var cow = new Cow(x, y);
+		cow.body.setCollisionGroup(this.livingCG);
+		this.livingGroup.add(cow);
+		// make collide with background
+		cow.body.collides(this.bgCG, this.draggableCollides, this);
 	}
 
 	create ()
@@ -100,7 +187,7 @@ class GameState extends Phaser.State
 	
 		// game physics
 		game.physics.startSystem(Phaser.Physics.P2JS);
-		game.physics.p2.gravity.y = 320;
+		game.physics.p2.gravity.y = 600;
 		game.physics.p2.friction = 0.4;
 		game.physics.p2.applyDamping = true;
 		game.physics.p2.setImpactEvents(true);
@@ -108,9 +195,9 @@ class GameState extends Phaser.State
 		this.bg = game.add.sprite(0, 0, 'bg')
 		this.livingCG = game.physics.p2.createCollisionGroup();
 		this.livingGroup = game.add.group();
-		var cow = new Cow(32, 240 - 16);
-		cow.body.setCollisionGroup(this.livingCG);
-		this.livingGroup.add(cow);
+
+		this.staticCG = game.physics.p2.createCollisionGroup();
+		this.staticGroup = game.add.group();
 		
 		// bg collision
 		this.bgCollision = game.add.sprite(0, 0);
@@ -121,10 +208,11 @@ class GameState extends Phaser.State
 		this.bgCollision.body.gravity = 0;
 		this.bgCG = game.physics.p2.createCollisionGroup();
 		this.bgCollision.body.setCollisionGroup(this.bgCG);
-
-		// make cow collide with background
-		cow.body.collides(this.bgCG, this.draggableCollides, this);
 		this.bgCollision.body.collides(this.livingCG);
+		this.bgCollision.body.collides(this.staticCG);
+
+		// spawn the first cow
+		this.spawnCow(32, 240 - 16);
 
 		game.world.setBounds(0, 0, 512, 864);
 		game.camera.scale.setTo(2);
@@ -209,6 +297,7 @@ class GameState extends Phaser.State
 	{
 		if (this.mouseSpring) {
 			game.physics.p2.removeConstraint(this.mouseSpring);
+			this.mouseSpring = undefined;
 			if (this.draggedBody) {
 				this.draggedBody.parent.sprite.animations.play('idle');
 			}
@@ -236,11 +325,7 @@ class GameState extends Phaser.State
 			);
 			
 			if (cowcounter<3) {
-				//this.livingGroup.add(new Cow(64, 208));
-				var cow = new Cow(64, 208);
-				cow.body.setCollisionGroup(this.livingCG);
-				this.livingGroup.add(cow);
-				cow.body.collides(this.bgCG, this.cowCollides);
+				this.spawnCow(64, 240 - 16);
 			}
 
 			this.cowtimer=60*5;
@@ -262,6 +347,10 @@ class GameState extends Phaser.State
 	{
 		//console.log("YAY?");				
 		drag.sprite.isOnGround = true;
+		if (this.mouseSpring === undefined && drag.sprite.prevY > 350)
+		{
+			this.spawnCorpse(drag.sprite);
+		}
 		/*
 		if (this.draggedBody && this.draggedBody.parent.sprite.body == drag.sprite.body) {
 
