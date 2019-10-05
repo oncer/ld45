@@ -61,12 +61,6 @@ class DraggableObject extends Phaser.Sprite
 		this.animations.add('drag', [8], 1, true);
 		this.animations.play('idle');
 		
-		//this.inputEnabled = true; // allow sprites to be input-enabled
-		//this.input.enableDrag(); // allow dragging; true -> snap to center
-		//this.events.onDragStart.add(this.startDrag, this);
-		//this.events.onDragUpdate.add(this.dragUpdate, this);
-		//this.events.onDragStop.add(this.stopDrag, this);	
-
 		this.isOnGround = true;
 	}
 
@@ -92,6 +86,57 @@ class Maggot extends DraggableObject
 	constructor(x, y)
 	{
 		super(x, y, 'maggot', 20, 10, 0, 0);
+		this.state = 0; // wait
+		this.direction = 1; // right
+		this.stateTimer = 1000;
+		this.animations.getAnimation('idle').onLoop.add(this.animationLooped, this);
+		this.animations.getAnimation('walk').onLoop.add(this.animationLooped, this);
+	}
+
+	animationLooped(sprite, anim)
+	{
+		if (!this.isOnGround) return;
+		switch (this.state)
+		{
+			case 0: 
+				if (this.stateTimer <= 0) {
+					this.state = 1;
+					this.stateTimer = Math.random() * 2000 + 1000;
+					if (this.x <= 100) {
+						this.direction = 1;
+					} else if (this.x >= game.world.width - 100) {
+						this.direction = -1;
+					} else {
+						this.direction = Math.random() < 0.5 ? -1 : 1;
+					}
+					this.animations.play('walk', 8);
+				}
+				break;
+			case 1:
+				if (this.stateTimer <= 0) {
+					this.state = 0;
+					this.stateTimer = Math.random() * 4000 + 1500;
+					this.animations.play('idle');
+					this.body.velocity.x = 0;
+				}
+				break;
+		}
+	}
+
+	update()
+	{
+		super.update();
+		if (!this.isOnGround) return;
+		this.stateTimer -= game.time.elapsed;
+		if (this.state == 1) {
+				this.body.velocity.x = 16 * this.direction;
+		}
+		this.scale.x = this.direction;
+	}
+
+	deadlyImpact()
+	{
+		// nothing happens...
 	}
 }
 
