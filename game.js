@@ -1,3 +1,4 @@
+//TODO drag into ground -> animation changes
 
 class DraggableObject extends Phaser.Sprite
 {
@@ -25,8 +26,10 @@ class DraggableObject extends Phaser.Sprite
 	{
 		if (this.isOnGround)
 		{
+			//console.log("ON GROUND");
 			this.body.rotation = 0;
 		}
+		//else console.log("NOT");
 	}
 }
 
@@ -43,7 +46,7 @@ class Cow extends DraggableObject
 
 	update()
 	{
-		//super.update();
+		super.update();
 		if (!this.isOnGround) return;
 		this.stateTimer -= game.time.elapsed;
 		switch (this.state)
@@ -116,7 +119,7 @@ class GameState extends Phaser.State
 		this.bgCollision.body.setCollisionGroup(this.bgCG);
 
 		// make cow collide with background
-		cow.body.collides(this.bgCG, this.cowCollides, this);
+		cow.body.collides(this.bgCG, this.draggableCollides, this);
 		this.bgCollision.body.collides(this.livingCG);
 
 		game.world.setBounds(0, 0, 512, 864);
@@ -168,19 +171,20 @@ class GameState extends Phaser.State
 		var bodies = game.physics.p2.hitTest(mousePos, this.livingGroup.children);
 		if (bodies.length > 0)
 		{
-			var body = bodies[0];
+			this.draggedBody = bodies[0];
 			//this.mouseConstraint = game.physics.p2.createRevoluteConstraint(body, [0,0],this.mouseBody, [0,0]) ;
 			//console.log("MOUSE CONSTRAINT");
 			
-			body.parent.isOnGround = false;
+			this.draggedBody.parent.sprite.isOnGround = false;
+			this.draggedBody.parent.sprite.animations.play('drag');
 			
 			//this.mouseSpring = game.physics.p2.createSpring(this.mouseBody, body, 0, 10, 10);		
 			var localPointInBody = [0, 0];
 			var physicsPos = [game.physics.p2.pxmi(mousePos.x), game.physics.p2.pxmi(mousePos.y)];    
-			body.toLocalFrame(localPointInBody, physicsPos);
+			this.draggedBody.toLocalFrame(localPointInBody, physicsPos);
 			
 			// use a revoluteContraint to attach mouseBody to the clicked body
-			this.mouseSpring = this.game.physics.p2.createRevoluteConstraint(this.mouseBody, [0, 0], body, [game.physics.p2.mpxi(localPointInBody[0]), game.physics.p2.mpxi(localPointInBody[1]) ]);
+			this.mouseSpring = this.game.physics.p2.createRevoluteConstraint(this.mouseBody, [0, 0], this.draggedBody, [game.physics.p2.mpxi(localPointInBody[0]), game.physics.p2.mpxi(localPointInBody[1]) ]);
 			
 			//this.mouseSpring = game.physics.p2.createRevoluteConstraint(this.mouseBody, [0, 0], body, 0, 10, 10);
 			
@@ -201,6 +205,9 @@ class GameState extends Phaser.State
 	{
 		if (this.mouseSpring) {
 			game.physics.p2.removeConstraint(this.mouseSpring);
+			if (this.draggedBody) {
+				this.draggedBody.parent.sprite.animations.play('idle');
+			}
 		}	
 	}
 
@@ -225,9 +232,16 @@ class GameState extends Phaser.State
 	}
 
 
-	cowCollides()
+	draggableCollides(drag, other)
 	{
-		console.log("YAY?");				
+		//console.log("YAY?");				
+		drag.sprite.isOnGround = true;
+		/*
+		if (this.draggedBody && this.draggedBody.parent.sprite.body == drag.sprite.body) {
+
+			game.physics.p2.removeConstraint(this.mouseSpring);
+		}
+		*/
 	}
 
 }
