@@ -206,6 +206,7 @@ class GameState extends Phaser.State
 		game.load.spritesheet("corpsezombie", 'gfx/corpse_zombie.png', 32, 32);
 		game.load.spritesheet("cowzombie", 'gfx/cow_zombie.png', 32, 32);
 		game.load.spritesheet("maggot", 'gfx/maggot.png', 32, 32);
+		game.load.spritesheet("pumpkin", 'gfx/pumpkin.png', 32, 32);
 		game.load.spritesheet('gore', 'gfx/gore.png', 16, 16);
 		game.load.spritesheet('poof', 'gfx/poof.png', 32, 32);
 		
@@ -214,26 +215,43 @@ class GameState extends Phaser.State
 		//game.load.audio('music', 'sfx/theme.ogg');
 	}
 
+	spawnGoreParticles(x, y, minVelX, maxVelX)
+	{
+		this.goreEmitter.x = x;
+		this.goreEmitter.y = y;
+		this.goreEmitter.setXSpeed(minVelX, maxVelX);
+
+		this.goreEmitter.start(true, 2000, null, 20);
+	}
+
 	spawnPoof(obj)
 	{
 		var poof = game.add.sprite(obj.x, obj.y, 'poof');
-
+		poof.anchor.set(0.5);
+		var anim = poof.animations.add('poof');
+		anim.onComplete.add(function(sprite, anim){
+			sprite.destroy();
+		});
+		anim.play();
 	}
 
 	spawnCorpse(obj)
 	{
+		this.spawnGoreParticles(obj.x, obj.y, -100, 100);
 		new Corpse(obj.x, obj.y);
 		obj.destroy();
 	}
 
 	spawnCorpseZombie(obj)
 	{
+		this.spawnGoreParticles(obj.x, obj.y, -100, 100);
 		new CorpseZombie(obj.x, obj.y);
 		obj.destroy();
 	}
 
 	spawnMaggot(obj)
 	{
+		this.spawnPoof(obj);
 		new Maggot(obj.x, obj.y);
 		obj.destroy();
 	}
