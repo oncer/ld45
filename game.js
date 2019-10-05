@@ -99,7 +99,7 @@ class Cow extends DraggableObject
 {
 	constructor(x, y)
 	{
-		super(x, y, 'cow', 28, 20, 0, 5);
+		super(x, y, 'cow', 28, 20, 0, 0);
 		this.state = 0; // wait
 		this.direction = 1; // right
 		this.stateTimer = 1000;	
