@@ -82,6 +82,7 @@ class GameState extends Phaser.State
 	{
 		game.load.image('bg', 'gfx/background.png');
 		game.load.spritesheet("cow", 'gfx/cow.png', 32, 32);
+		game.load.spritesheet("cowzombie", 'gfx/cow_zombie.png', 32, 32);
 		game.load.spritesheet('gore', 'gfx/gore.png', 16, 16);
 		
 		//game.load.spritesheet('propeller', 'gfx/propeller.png', 16, 64, 4);
