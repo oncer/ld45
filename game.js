@@ -21,7 +21,7 @@ create ()
 	console.log("My Message");
 	
 	// bg collision
-	this.bgCollision = game.add.sprite(0, 0, 'bgCol');
+	this.bgCollision = game.add.sprite(0, 0, 'bg');
 
 	game.physics.enable(this.bgCollision, Phaser.Physics.ARCADE);
 
@@ -137,8 +137,8 @@ update ()
 
 render()
 {
-	game.debug.body(this.cow);
-	game.debug.body(this.bgCollision);
+	//game.debug.body(this.cow);
+	//game.debug.body(this.bgCollision);
 }
 
 }
