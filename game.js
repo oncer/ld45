@@ -15,22 +15,35 @@ preload ()
 
 create ()
 {
-  console.log("My Message");
+	console.log("My Message");
+	
+	var bgCollision;
   
-	// input keys
-	this.keySpacebar = this.game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+	// bg collision
+	bgCollision = game.add.sprite(0, 0, 'bgCol');
+    bgCollision.name = 'bgCol';
 
+    game.physics.enable(bgCollision, Phaser.Physics.ARCADE);
+
+    bgCollision.body.setSize(0, 240, 512, 288);
+    bgCollision.body.immovable = true;
+	
+	// game physics
+	game.physics.startSystem(Phaser.Physics.ARCADE);
+	game.physics.arcade.gravity.y = 100;
+  
 	this.bg = game.add.sprite(0, 0, 'bg')
 	
 	this.cow = game.add.sprite(32, 208, 'cow');
+	game.physics.enable(this.cow, Phaser.Physics.ARCADE);
 	var anim = this.cow.animations.add('cowidle', [0, 1, 2, 3], 4, true).play(); // name, frames, framerate
 	console.log(anim);
 
-	game.physics.startSystem(Phaser.Physics.P2JS)
-	game.physics.p2.gravity.y = 320;
-	game.physics.p2.friction = 0.4;
-	game.physics.p2.applyDamping = true;
-	game.physics.p2.setImpactEvents(true);
+	//game.physics.startSystem(Phaser.Physics.P2JS)
+	//game.physics.p2.gravity.y = 320;
+	//game.physics.p2.friction = 0.4;
+	//game.physics.p2.applyDamping = true;
+	//game.physics.p2.setImpactEvents(true);
 
 	game.world.setBounds(0, 0, 512, 864);
 	game.camera.scale.setTo(2);
@@ -50,10 +63,10 @@ create ()
     this.cow.input.enableDrag(true); // allow dragging; true -> snap to center
 
 	// gore emitter
-	//this.goreEmitter = game.add.emitter(0, 0, 100);
-	//this.goreEmitter.makeParticles('gore', [0,1,2,3,4,5,6], 300);
-	//this.goreEmitter.gravity = 200;
-	//this.goreEmitter.setXSpeed(-300,-100);
+	this.goreEmitter = game.add.emitter(0, 0, 100);
+	this.goreEmitter.makeParticles('gore', [0,1,2,3,4,5,6], 300);
+	this.goreEmitter.gravity = 200;
+	this.goreEmitter.setXSpeed(-300,-100);
 
 	
 	//define soundeffects
