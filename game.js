@@ -1,3 +1,6 @@
+class Cow extends Phaser.Sprite
+{
+}
 
 class GameState extends Phaser.State
 {
@@ -17,16 +20,15 @@ create ()
 {
 	console.log("My Message");
 	
-	var bgCollision;
-  
 	// bg collision
-	bgCollision = game.add.sprite(0, 0, 'bgCol');
-    bgCollision.name = 'bgCol';
+	this.bgCollision = game.add.sprite(0, 0, 'bgCol');
+	//this.bgCollision.name = 'bgCol';
 
-    game.physics.enable(bgCollision, Phaser.Physics.ARCADE);
+	game.physics.enable(this.bgCollision, Phaser.Physics.ARCADE);
 
-    bgCollision.body.setSize(0, 240, 512, 288);
-    bgCollision.body.immovable = true;
+	this.bgCollision.body.setSize(1024, 96, 0, 480);
+	this.bgCollision.body.immovable = true;
+	this.bgCollision.body.allowGravity = false;
 	
 	// game physics
 	game.physics.startSystem(Phaser.Physics.ARCADE);
@@ -36,6 +38,7 @@ create ()
 	
 	this.cow = game.add.sprite(32, 208, 'cow');
 	game.physics.enable(this.cow, Phaser.Physics.ARCADE);
+	this.cow.body.setSize(64, 64);
 	var anim = this.cow.animations.add('cowidle', [0, 1, 2, 3], 4, true).play(); // name, frames, framerate
 	console.log(anim);
 
@@ -102,9 +105,14 @@ update ()
 	var mouseX = game.input.activePointer.position.x / game.camera.scale.y;
 	var mouseY = (game.input.activePointer.position.y + game.camera.view.y) / game.camera.scale.y;
 
-
+	game.physics.arcade.collide(this.cow, this.bgCollision);
 }
 
+render()
+{
+	game.debug.body(this.cow);
+	game.debug.body(this.bgCollision);
+}
 
 }
 
