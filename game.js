@@ -91,6 +91,9 @@ class GameState extends Phaser.State
 
 	create ()
 	{
+		// cow reset timer
+		this.cowtimer=60*5;
+	
 		// game physics
 		game.physics.startSystem(Phaser.Physics.P2JS);
 		game.physics.p2.gravity.y = 200;
@@ -211,6 +214,28 @@ class GameState extends Phaser.State
 
 		// time since some start point, in seconds
 		this.T = game.time.now/1000;
+		
+		// cowtimer
+		if (this.cowtimer>0) {this.cowtimer-=1;}
+		else if (this.cowtimer==0) {
+			var cowcounter=0;
+			// count cows
+			this.livingGroup.forEach(function(myobj) {	
+				if (myobj instanceof Cow)
+					cowcounter+=1;
+			}
+			);
+			
+			if (cowcounter<3) {
+				//this.livingGroup.add(new Cow(64, 208));
+				var cow = new Cow(64, 208);
+				cow.body.setCollisionGroup(this.livingCG);
+				this.livingGroup.add(cow);
+				cow.body.collides(this.bgCG, this.cowCollides);
+			}
+
+			this.cowtimer=60*5;
+		}
 
 		var mouseX = game.input.activePointer.position.x / game.camera.scale.x;
 		var mouseY = game.input.activePointer.position.y / game.camera.scale.y;
