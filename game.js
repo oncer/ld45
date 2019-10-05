@@ -184,6 +184,9 @@ class GameState extends Phaser.State
 	{
 		// cow reset timer
 		this.cowtimer=60*5;
+		
+		// mouse shall not be used below this value
+		this.maxMouseY = 232;
 	
 		// game physics
 		game.physics.startSystem(Phaser.Physics.P2JS);
@@ -231,7 +234,7 @@ class GameState extends Phaser.State
 		// drag collision
 		this.mouseBody = game.add.sprite(0, 0);
 		game.physics.p2.enable(this.mouseBody,true);
-		this.mouseBody.body.setCircle(5);
+		this.mouseBody.body.setCircle(1);
 		this.mouseBody.body.static = true;
 		this.mouseCG = game.physics.p2.createCollisionGroup();
 		this.mouseBody.body.setCollisionGroup(this.mouseCG);
@@ -257,33 +260,31 @@ class GameState extends Phaser.State
 
 	mouseClick(pointer)
 	{
+		this.setMousePointerBounds();
+		
 		//console.log(pointer.position);
-		var mousePos = new Phaser.Point(pointer.x / game.camera.scale.x,
+		var pointerPos = new Phaser.Point(pointer.x / game.camera.scale.x,
 			pointer.y / game.camera.scale.y);
+		// var mousePos = new Phaser.Point(this.mouseBody.x / game.camera.scale.x,
+			// this.mouseBody.y / game.camera.scale.y);
+		var mousePos = new Phaser.Point(this.mouseBody.body.x,this.mouseBody.body.y);
+
+		if (pointerPos.y > this.maxMouseY + 16 / game.camera.scale.y) return;
+		
 		var bodies = game.physics.p2.hitTest(mousePos, this.livingGroup.children);
 		if (bodies.length > 0)
 		{
 			this.draggedBody = bodies[0];
-			//this.mouseConstraint = game.physics.p2.createRevoluteConstraint(body, [0,0],this.mouseBody, [0,0]) ;
-			//console.log("MOUSE CONSTRAINT");
 			
 			this.draggedBody.parent.sprite.isOnGround = false;
 			this.draggedBody.parent.sprite.animations.play('drag');
 			
-			//this.mouseSpring = game.physics.p2.createSpring(this.mouseBody, body, 0, 10, 10);		
 			var localPointInBody = [0, 0];
 			var physicsPos = [game.physics.p2.pxmi(mousePos.x), game.physics.p2.pxmi(mousePos.y)];    
 			this.draggedBody.toLocalFrame(localPointInBody, physicsPos);
 			
 			// use a revoluteContraint to attach mouseBody to the clicked body
 			this.mouseSpring = this.game.physics.p2.createRevoluteConstraint(this.mouseBody, [0, 0], this.draggedBody, [game.physics.p2.mpxi(localPointInBody[0]), game.physics.p2.mpxi(localPointInBody[1]) ]);
-			
-			//this.mouseSpring = game.physics.p2.createRevoluteConstraint(this.mouseBody, [0, 0], body, 0, 10, 10);
-			
-			//mouseConstraint = this.game.physics.p2.createRevoluteConstraint(mouseBody, [0, 0], clickedBody, [game.physics.p2.mpxi(localPointInBody[0]), game.physics.p2.mpxi(localPointInBody[1]) ]);
-			
-			//this.mouseSpring = game.physics.p2.createRotationalSpring(this.mouseBody, body, 0, 30, 1);
-			//bodyA, bodyB, restLength, stiffness, damping, restLength, stiffness, damping, worldA, worldB, localA, localB
 		}
 	}
 
@@ -334,6 +335,7 @@ class GameState extends Phaser.State
 		var mouseX = game.input.activePointer.position.x / game.camera.scale.x;
 		var mouseY = game.input.activePointer.position.y / game.camera.scale.y;
 
+		this.setMousePointerBounds();
 	}
 
 	render()
@@ -345,7 +347,6 @@ class GameState extends Phaser.State
 
 	draggableCollides(drag, other)
 	{
-		//console.log("YAY?");				
 		drag.sprite.isOnGround = true;
 		if (this.mouseSpring === undefined && drag.sprite.prevY > 350)
 		{
@@ -359,6 +360,10 @@ class GameState extends Phaser.State
 		*/
 	}
 
+	setMousePointerBounds()
+	{
+		this.mouseBody.body.y = Math.min(this.mouseBody.body.y, this.maxMouseY);
+	}
 }
 
 game = new Phaser.Game(
