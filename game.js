@@ -7,11 +7,12 @@ class DraggableObject extends Phaser.Sprite
 		game.physics.enable(this, Phaser.Physics.ARCADE);
 		this.body.setSize(64, 64);
 		this.animations.add('idle', [0,1,2,3], 4, true);
+		this.animations.add('walk', [4,5,6,7], 4, true);
 		this.animations.add('drag', [8], 1, true);
 		this.animations.play('idle');
 		
-    this.inputEnabled = true; // allow sprites to be input-enabled
-    this.input.enableDrag(); // allow dragging; true -> snap to center
+		this.inputEnabled = true; // allow sprites to be input-enabled
+		this.input.enableDrag(); // allow dragging; true -> snap to center
 		this.events.onDragStart.add(this.startDrag, this);
 		this.events.onDragUpdate.add(this.dragUpdate, this);
 		this.events.onDragStop.add(this.stopDrag, this);	
