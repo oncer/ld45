@@ -11,7 +11,29 @@ class Cow extends Phaser.Sprite
 		
     this.inputEnabled = true; // allow sprites to be input-enabled
     this.input.enableDrag(true); // allow dragging; true -> snap to center
+	this.events.onDragStart.add(this.startDrag, this);
+	this.events.onDragUpdate.add(this.dragUpdate, this);
+    this.events.onDragStop.add(this.stopDrag, this);	
 	}
+
+startDrag()
+{
+    // can't be moved by physics nor input
+    this.cow.body.moves = false;
+	this.cow.frame = 8;
+	this.cow.animations.play('cowdrag');
+}
+stopDrag()
+{
+    // can be moved by physics or input again
+    this.cow.body.moves = true;
+	this.cow.animations.play('cowidle');
+}
+dragUpdate()
+{
+    // limit vertical dragging (can't be dragged into ground)
+	if (this.cow.y > 240-32) this.cow.y = 240-32;
+}
 
 	update()
 	{
@@ -34,7 +56,7 @@ preload ()
 create ()
 {
 	// bg collision
-	this.bgCollision = game.add.sprite(0, 0);
+	this.bgCollision = game.add.sprite(0, 0, 'bgCol');
 	//this.bgCollision.name = 'bgCol';
 
 	game.physics.enable(this.bgCollision, Phaser.Physics.ARCADE);
