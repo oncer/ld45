@@ -86,8 +86,11 @@ create ()
 	game.physics.p2.gravity.y = 200;
   
 	this.bg = game.add.sprite(0, 0, 'bg')
+	this.livingCG = game.physics.p2.createCollisionGroup();
 	this.livingGroup = game.add.group();
-	this.livingGroup.add(new Cow(32, 240 - 16));
+	var cow = new Cow(32, 240 - 16);
+	cow.body.setCollisionGroup(this.livingCG);
+	this.livingGroup.add(cow);
 	
 	// bg collision
 	this.bgCollision = game.add.sprite(0, 0);
@@ -96,8 +99,13 @@ create ()
 	this.bgCollision.body.addRectangle(1024, 48, 0, 240 + 24);
 	this.bgCollision.body.static = true;
 	this.bgCollision.body.gravity = 0;
-	
-	
+	this.bgCG = game.physics.p2.createCollisionGroup();
+	this.bgCollision.body.setCollisionGroup(this.bgCG);
+
+	// make cow collide with background
+	cow.body.collides(this.bgCG);
+	this.bgCollision.body.collides(this.livingCG);
+
 	game.world.setBounds(0, 0, 512, 864);
 	game.camera.scale.setTo(2);
 
@@ -112,6 +120,14 @@ create ()
 	this.goreEmitter.gravity = 200;
 	this.goreEmitter.setXSpeed(-300,-100);
 
+	// drag collision
+	this.mouseBody = game.add.sprite(0, 0);
+	game.physics.p2.enable(this.mouseBody,true);
+	this.mouseBody.body.setCircle(5);
+	this.mouseBody.body.static = true;
+	this.mouseCG = game.physics.p2.createCollisionGroup();
+	this.mouseBody.body.setCollisionGroup(this.mouseCG);
+
 	
 	//define soundeffects
 	//this.wavesAudio = game.add.audio('wavesAudio');
@@ -124,16 +140,42 @@ create ()
 		}
 	}, this);*/
 
+	game.input.onDown.add(this.mouseClick, this);
+	game.input.addMoveCallback(this.mouseMove, this);
+	game.input.onUp.add(this.mouseRelease, this);
+
 	game.camera.flash('#000000');
 }
 
-startGame()
+mouseClick(pointer)
 {
+	console.log(pointer.position);
+	var mousePos = new Phaser.Point(pointer.x / game.camera.scale.x,
+		pointer.y / game.camera.scale.y);
+	var bodies = game.physics.p2.hitTest(mousePos, this.livingGroup.children);
+	if (bodies.length > 0)
+	{
+		var body = bodies[0];
+		//this.mouseConstraint = game.physics.p2.createRevoluteConstraint(body, [0,0],this.mouseBody, [0,0]) ;
+		console.log("MOUSE CONSTRAINT");
+		this.mouseSpring = game.physics.p2.createSpring(this.mouseBody, body, 0,30,1);
+		//bodyA, bodyB, restLength, stiffness, damping, restLength, stiffness, damping, worldA, worldB, localA, localB
+	}
 }
 
-restartGame()
+mouseMove(pointer, x, y, isDown)
 {
+	this.mouseBody.body.x = x / game.camera.scale.x;
+	this.mouseBody.body.y = y / game.camera.scale.y;
 }
+
+mouseRelease()
+{
+	if (this.mouseSpring) {
+		game.physics.p2.removeSpring(this.mouseSpring);
+	}
+}
+
 
 update ()
 {
@@ -143,11 +185,8 @@ update ()
 	// time since some start point, in seconds
 	this.T = game.time.now/1000;
 
-	var mouseX = game.input.activePointer.position.x / game.camera.scale.y;
-	var mouseY = (game.input.activePointer.position.y + game.camera.view.y) / game.camera.scale.y;
-
-	// mouse drag shit
-	
+	var mouseX = game.input.activePointer.position.x / game.camera.scale.x;
+	var mouseY = game.input.activePointer.position.y / game.camera.scale.y;
 
 }
 
