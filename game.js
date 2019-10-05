@@ -283,6 +283,7 @@ class GameState extends Phaser.State
 		game.load.spritesheet("seed", 'gfx/seed.png', 32, 32);
 		game.load.spritesheet('gore', 'gfx/gore.png', 16, 16);
 		game.load.spritesheet('poof', 'gfx/poof.png', 32, 32);
+		game.load.spritesheet('poofblood', 'gfx/poof_blood.png', 32, 32);
 		game.load.spritesheet('birdtotem', 'gfx/bird_totem.png', 32, 32);
 		
 		//game.load.spritesheet('propeller', 'gfx/propeller.png', 16, 64, 4);
@@ -292,17 +293,19 @@ class GameState extends Phaser.State
 
 	spawnGoreParticles(x, y, minVelX, maxVelX)
 	{
+		this.spawnPoofBlood(x, y);
+		
 		this.goreEmitter.x = x;
 		this.goreEmitter.y = y;
 		this.goreEmitter.setXSpeed(minVelX, maxVelX);
 
-		this.goreEmitter.start(true, 2000, null, 20);
+		this.goreEmitter.start(false, 2000, 15, 20);
 	}
 
 	spawnPoof(x, y)
 	{
-		//var poof = game.add.sprite(obj.x, obj.y, 'poof');
-		var poof = game.add.sprite(x, this.spawnObjY, 'poof');
+		var ymin = Math.min(y, this.spawnObjY);
+		var poof = game.add.sprite(x, ymin, 'poof');
 		poof.anchor.set(0.5, 0.25);
 		var anim = poof.animations.add('poof');
 		anim.onComplete.add(function(sprite, anim){
@@ -311,6 +314,19 @@ class GameState extends Phaser.State
 		anim.play(30);
 	}
 
+	spawnPoofBlood(x, y)
+	{
+		var ymin = Math.min(y, this.spawnObjY);
+		var poof = game.add.sprite(x, ymin, 'poofblood');
+		poof.anchor.set(0.5, 0.25);
+		var anim = poof.animations.add('poofblood');
+		anim.onComplete.add(function(sprite, anim){
+			sprite.destroy();
+		});
+		//anim.play(15);
+		anim.play(20);
+	}
+	
 	spawnCorpse(obj)
 	{
 		this.spawnGoreParticles(obj.x, obj.y, -100, 100);
@@ -406,8 +422,9 @@ class GameState extends Phaser.State
 		// gore emitter
 		this.goreEmitter = game.add.emitter(0, 0, 100);
 		this.goreEmitter.makeParticles('gore', [0,1,2,3,4,5,6], 300);
-		this.goreEmitter.gravity = 200;
-		this.goreEmitter.setXSpeed(-300,-100);
+		this.goreEmitter.gravity = 400;
+		this.goreEmitter.setXSpeed(-50,-50);
+		this.goreEmitter.setYSpeed(-150,-25);
 
 		// drag collision
 		this.mouseBody = game.add.sprite(0, 0);
