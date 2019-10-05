@@ -4,7 +4,7 @@ class GameState extends Phaser.State
 preload ()
 {
 
-	//game.load.image('bg', 'gfx/background.png');
+	game.load.image('bg', 'gfx/background.png');
 	//game.load.spritesheet('propeller', 'gfx/propeller.png', 16, 64, 4);
 	game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
 	//game.load.audio('music', 'sfx/theme.ogg');
@@ -16,6 +16,8 @@ create ()
   
 	// input keys
 	this.keySpacebar = this.game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+
+	this.bg = game.add.sprite(0, 0, 'bg')
 
 	game.physics.startSystem(Phaser.Physics.P2JS)
 	game.physics.p2.gravity.y = 320;
