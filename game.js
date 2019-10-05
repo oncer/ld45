@@ -12,6 +12,8 @@ preload ()
 
 create ()
 {
+  console.log("My Message");
+  
 	// input keys
 	this.keySpacebar = this.game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
 
