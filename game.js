@@ -96,7 +96,10 @@ class GameState extends Phaser.State
 	
 		// game physics
 		game.physics.startSystem(Phaser.Physics.P2JS);
-		game.physics.p2.gravity.y = 200;
+		game.physics.p2.gravity.y = 320;
+		game.physics.p2.friction = 0.4;
+		game.physics.p2.applyDamping = true;
+		game.physics.p2.setImpactEvents(true);
 	  
 		this.bg = game.add.sprite(0, 0, 'bg')
 		this.livingCG = game.physics.p2.createCollisionGroup();
@@ -116,7 +119,7 @@ class GameState extends Phaser.State
 		this.bgCollision.body.setCollisionGroup(this.bgCG);
 
 		// make cow collide with background
-		cow.body.collides(this.bgCG, this.cowCollides);
+		cow.body.collides(this.bgCG, this.cowCollides, this);
 		this.bgCollision.body.collides(this.livingCG);
 
 		game.world.setBounds(0, 0, 512, 864);
@@ -162,7 +165,7 @@ class GameState extends Phaser.State
 
 	mouseClick(pointer)
 	{
-		console.log(pointer.position);
+		//console.log(pointer.position);
 		var mousePos = new Phaser.Point(pointer.x / game.camera.scale.x,
 			pointer.y / game.camera.scale.y);
 		var bodies = game.physics.p2.hitTest(mousePos, this.livingGroup.children);
@@ -170,7 +173,7 @@ class GameState extends Phaser.State
 		{
 			var body = bodies[0];
 			//this.mouseConstraint = game.physics.p2.createRevoluteConstraint(body, [0,0],this.mouseBody, [0,0]) ;
-			console.log("MOUSE CONSTRAINT");
+			//console.log("MOUSE CONSTRAINT");
 			
 			body.parent.isOnGround = false;
 			
@@ -180,7 +183,7 @@ class GameState extends Phaser.State
 			body.toLocalFrame(localPointInBody, physicsPos);
 			
 			// use a revoluteContraint to attach mouseBody to the clicked body
-			this.mouseSpring  = this.game.physics.p2.createRevoluteConstraint(this.mouseBody, [0, 0], body, [game.physics.p2.mpxi(localPointInBody[0]), game.physics.p2.mpxi(localPointInBody[1]) ]);
+			this.mouseSpring = this.game.physics.p2.createRevoluteConstraint(this.mouseBody, [0, 0], body, [game.physics.p2.mpxi(localPointInBody[0]), game.physics.p2.mpxi(localPointInBody[1]) ]);
 			
 			//this.mouseSpring = game.physics.p2.createRevoluteConstraint(this.mouseBody, [0, 0], body, 0, 10, 10);
 			
@@ -195,8 +198,6 @@ class GameState extends Phaser.State
 	{
 		this.mouseBody.body.x = x / game.camera.scale.x;
 		this.mouseBody.body.y = y / game.camera.scale.y;
-		
-		
 	}
 
 	mouseRelease()
