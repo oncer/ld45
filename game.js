@@ -266,19 +266,21 @@ class GameState extends Phaser.State
 
 	spawnPoof(x, y)
 	{
-		var poof = game.add.sprite(obj.x, obj.y, 'poof');
-		poof.anchor.set(0.5);
+		//var poof = game.add.sprite(obj.x, obj.y, 'poof');
+		var poof = game.add.sprite(obj.x, this.spawnObjY, 'poof');
+		poof.anchor.set(0.5, 0.25);
 		var anim = poof.animations.add('poof');
 		anim.onComplete.add(function(sprite, anim){
 			sprite.destroy();
 		});
-		anim.play();
+		anim.play(30);
 	}
 
 	spawnCorpse(obj)
 	{
 		this.spawnGoreParticles(obj.x, obj.y, -100, 100);
-		new Corpse(obj.x, obj.y);
+		//new Corpse(obj.x, obj.y);
+		new Corpse(obj.x, this.spawnObjY);
 		obj.destroy();
 	}
 
@@ -321,7 +323,6 @@ class GameState extends Phaser.State
 
 		this.livingCG = game.physics.p2.createCollisionGroup();
 		this.livingGroup = game.add.group();
-
 		
 		// bg collision
 		this.bgCollision = game.add.sprite(0, 0);		
