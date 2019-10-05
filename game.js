@@ -50,24 +50,50 @@ class BirdTotem extends StaticObject
 		super(x, y, 'birdtotem', 32, 32, 0, 0);
 		this.maggotCount = 0;
 		this.direction = Math.random() < 0.5 ? -1 : 1;
+		this.animations.add('eat', [4,5,6,7], 8, true);
+		this.animations.play('idle');
+		this.eatTimer = 0;
+		this.seedTimer = 0;
+	}
+
+	isEating()
+	{
+		return this.eatTimer > 0;
 	}
 
 	update()
 	{
 		this.scale.x = this.direction;
+
+		if (this.eatTimer > 0) {
+			this.eatTimer -= game.time.elapsed;
+			if (this.eatTimer <= 0) {
+				this.maggotCount++;
+				this.animations.play('idle');
+
+				if (this.maggotCount >= 3) {
+					this.seedTimer = 1000;
+					this.maggotCount = 0;
+				}
+			}
+		}
+
+		if (this.seedTimer > 0) {
+			this.seedTimer -= game.time.elapsed;
+			if (this.seedTimer <= 0) {
+				var x = this.x + 20 * this.direction;
+				var y = this.y;
+				new Seed(x, y);
+				game.state.getCurrentState().spawnPoof(x, y);
+			}
+		}
 	}
 
 	eatMaggot(obj)
 	{
 		obj.destroy();
-		this.maggotCount++;
-
-		if (this.maggotCount >= 3) {
-			var x = this.x + 20 * this.direction;
-			var y = this.y;
-			new Seed(x, y);
-			game.state.getCurrentState().spawnPoof(x, y);
-		}
+		this.eatTimer = 2000 + Math.random() * 1000;
+		this.animations.play('eat');
 	}
 }
 
@@ -91,7 +117,7 @@ class DraggableObject extends Phaser.Sprite
 		this.body.setCollisionGroup(gstate.livingCG);
 		gstate.livingGroup.add(this);
 		this.body.collides(gstate.bgCG, gstate.draggableCollides, gstate);
-		this.body.collides(gstate.bgSidesCG);
+		//this.body.collides(gstate.bgSidesCG);
 		this.body.angularDamping = 0.995;
 
 		//this.body.addRectangle(32, 32, 0, 0);
@@ -101,6 +127,7 @@ class DraggableObject extends Phaser.Sprite
 		this.animations.play('idle');
 		
 		this.isOnGround = true;
+		this.justSpawned = true;
 	}
 
 	update()
@@ -112,6 +139,14 @@ class DraggableObject extends Phaser.Sprite
 		}
 		this.prevY = this.body.velocity.y;
 		//else console.log("NOT");
+		
+		if (!this.justSpawned && (this.x < -40 || this.x > game.world.width + 40)) {
+			console.log("draggable out of bounds, destroyed");
+			this.destroy();
+		}
+		if (this.justSpawned && (this.x > 32 && this.x < game.world.width - 32)) {
+			this.justSpawned = false;
+		}
 	}
 
 	deadlyImpact()
@@ -213,7 +248,7 @@ class Cow extends DraggableObject
 				break;
 			case 1:
 				this.body.velocity.x = 15 * this.direction;
-				if (this.stateTimer <= 0) {
+				if (this.stateTimer <= 0 && !this.justSpawned) {
 					this.state = 0;
 					this.stateTimer = Math.random() * 2000 + 1500;
 					this.animations.play('idle');
@@ -291,9 +326,10 @@ class GameState extends Phaser.State
 		obj.destroy();
 	}
 
-	spawnCowZombie(x, y)
+	spawnCowZombie(x, y, direction)
 	{
-		new Cow(x, y, true);
+		var cow = new Cow(x, y, true);
+		cow.direction = direction;
 	}
 
 	spawnCow(x, y)
@@ -332,9 +368,9 @@ class GameState extends Phaser.State
 		game.physics.p2.enable(this.bgCollision);
 		this.bgCollision.body.clearShapes();
 		// floor:
-		this.bgCollision.body.addRectangle(1024, 48, 0, 240 + 24);
+		this.bgCollision.body.addRectangle(2048, 48, 0, 240 + 24);
 		// ceil:
-		this.bgCollision.body.addRectangle(1024, 64, 0, 0 - 256);
+		this.bgCollision.body.addRectangle(2048, 64, 0, 0 - 256);
 		this.bgCollision.body.static = true;
 		this.bgCollision.body.gravity = 0;
 		this.bgCG = game.physics.p2.createCollisionGroup();
@@ -343,6 +379,7 @@ class GameState extends Phaser.State
 		this.bgCollision.body.collides(this.staticCG);
 		
 		// sides:
+		/*
 		this.bgCollisionSides = game.add.sprite(0, 0);
 		game.physics.p2.enable(this.bgCollisionSides);
 		this.bgCollisionSides.body.clearShapes();
@@ -353,6 +390,7 @@ class GameState extends Phaser.State
 		this.bgCollisionSides.body.collides(this.livingCG);
 		this.bgSidesCG = game.physics.p2.createCollisionGroup();
 		this.bgCollisionSides.body.setCollisionGroup(this.bgSidesCG);
+		*/
 		
 		// spawn the first cow
 		this.spawnCow(32, 240 - 16);
@@ -434,7 +472,7 @@ class GameState extends Phaser.State
 	{
 		if ((sprite instanceof Cow) && !sprite.zombie && (dragSprite instanceof Maggot))
 		{
-			this.spawnCowZombie(sprite.x, sprite.y);
+			this.spawnCowZombie(sprite.x, sprite.y, sprite.direction);
 			sprite.destroy();
 			dragSprite.destroy();
 			this.spawnPoof(sprite.x, sprite.y);
@@ -443,7 +481,7 @@ class GameState extends Phaser.State
 			sprite.destroy();
 			dragSprite.destroy();
 			this.spawnPoof(sprite.x, sprite.y);
-		} else if ((sprite instanceof BirdTotem) && (dragSprite instanceof Maggot)) {
+		} else if ((sprite instanceof BirdTotem) && !sprite.isEating() && (dragSprite instanceof Maggot)) {
 			sprite.eatMaggot(dragSprite);
 		}
 	}
@@ -502,7 +540,11 @@ class GameState extends Phaser.State
 			);
 			
 			if (cowcounter<3) {
-				this.spawnCow(64, 240 - 16);
+				if (Math.random() < 0.5) {
+					this.spawnCow(-40, 240 - 16);
+				} else {
+					this.spawnCow(game.world.width + 40, 240 - 16);
+				}
 			}
 
 			this.cowtimer=60*5;
