@@ -15,7 +15,7 @@ create ()
 	// input keys
 	this.keySpacebar = this.game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
 
-	this.bg = game.add.sprite(0, 0, 'bg')
+	this.bg = game.add.sprite(0, 100, 'bg')
 
 	game.physics.startSystem(Phaser.Physics.P2JS)
 	game.physics.p2.gravity.y = 320;
