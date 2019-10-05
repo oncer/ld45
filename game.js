@@ -15,7 +15,7 @@ preload ()
 
 create ()
 {
-  console.log("My Message");
+	console.log("My Message");
   
 	// input keys
 	this.keySpacebar = this.game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
@@ -34,7 +34,6 @@ create ()
 
 	game.world.setBounds(0, 0, 512, 864);
 	game.camera.scale.setTo(2);
-
 
 	// camera
 	//game.camera.follow(this.zeppelin);
