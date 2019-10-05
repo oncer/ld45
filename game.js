@@ -287,7 +287,7 @@ class GameState extends Phaser.State
 	spawnCorpseZombie(obj)
 	{
 		this.spawnGoreParticles(obj.x, obj.y, -100, 100);
-		new CorpseZombie(obj.x, obj.y);
+		new CorpseZombie(obj.x, this.spawnObjY);
 		obj.destroy();
 	}
 
