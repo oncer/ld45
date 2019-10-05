@@ -7,33 +7,34 @@ class Cow extends Phaser.Sprite
 		game.physics.enable(this, Phaser.Physics.ARCADE);
 		this.body.setSize(64, 64);
 		this.animations.add('idle', [0,1,2,3], 4, true);
+		this.animations.add('drag', [8], 1, true);
 		this.animations.play('idle');
 		
     this.inputEnabled = true; // allow sprites to be input-enabled
-    this.input.enableDrag(true); // allow dragging; true -> snap to center
-	this.events.onDragStart.add(this.startDrag, this);
-	this.events.onDragUpdate.add(this.dragUpdate, this);
-    this.events.onDragStop.add(this.stopDrag, this);	
+    this.input.enableDrag(); // allow dragging; true -> snap to center
+		this.events.onDragStart.add(this.startDrag, this);
+		this.events.onDragUpdate.add(this.dragUpdate, this);
+		this.events.onDragStop.add(this.stopDrag, this);	
 	}
 
-startDrag()
-{
-    // can't be moved by physics nor input
-    this.cow.body.moves = false;
-	this.cow.frame = 8;
-	this.cow.animations.play('cowdrag');
-}
-stopDrag()
-{
-    // can be moved by physics or input again
-    this.cow.body.moves = true;
-	this.cow.animations.play('cowidle');
-}
-dragUpdate()
-{
-    // limit vertical dragging (can't be dragged into ground)
-	if (this.cow.y > 240-32) this.cow.y = 240-32;
-}
+	startDrag()
+	{
+		// can't be moved by physics nor input
+		this.body.moves = false;
+		this.animations.play('drag');
+	}
+	stopDrag()
+	{
+		// can be moved by physics or input again
+		this.body.moves = true;
+		this.body.velocity.setTo(0, 0);
+		this.animations.play('idle');
+	}
+	dragUpdate()
+	{
+		// limit vertical dragging (can't be dragged into ground)
+		if (this.y > 240-32) this.y = 240-32;
+	}
 
 	update()
 	{
