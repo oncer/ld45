@@ -4,7 +4,7 @@ class StaticObject extends Phaser.Sprite
 	constructor(x, y, sprite, cWidth, cHeight, cX, cY)
 	{
 		super(game, x, y, sprite)
-		game.physics.p2.enable(this, true);
+		game.physics.p2.enable(this);
 		this.body.clearShapes();
 		this.body.addRectangle(cWidth, cHeight, cX, cY);
 		var gstate = game.state.getCurrentState();
@@ -28,7 +28,9 @@ class Corpse extends StaticObject
 	{
 		this.time += game.time.elapsed;
 		if (this.time > 5000) {
-			game.state.getCurrentState().spawnMaggot(this);
+			new Maggot(this.x, this.y);
+			game.state.getCurrentState().spawnPoof(this.x, this.y);
+			this.destroy();
 		}
 	}
 }
@@ -41,12 +43,48 @@ class CorpseZombie extends StaticObject
 	}
 }
 
+class BirdTotem extends StaticObject
+{
+	constructor(x, y)
+	{
+		super(x, y, 'birdtotem', 32, 32, 0, 0);
+		this.maggotCount = 0;
+		this.direction = Math.random() < 0.5 ? -1 : 1;
+	}
+
+	update()
+	{
+		this.scale.x = this.direction;
+	}
+
+	eatMaggot(obj)
+	{
+		obj.destroy();
+		this.maggotCount++;
+
+		if (this.maggotCount >= 3) {
+			var x = this.x + 20 * this.direction;
+			var y = this.y;
+			new Seed(x, y);
+			game.state.getCurrentState().spawnPoof(x, y);
+		}
+	}
+}
+
+class Seed extends StaticObject
+{
+	constructor(x, y)
+	{
+		super(x, y, 'seed', 32, 32, 0, 0);
+	}
+}
+
 class DraggableObject extends Phaser.Sprite
 {
 	constructor(x, y, sprite, cWidth, cHeight, cX, cY)
 	{
 		super(game, x, y, sprite);
-		game.physics.p2.enable(this, true);
+		game.physics.p2.enable(this);
 		this.body.clearShapes();
 		this.body.addRectangle(cWidth, cHeight, cX, cY);
 		var gstate = game.state.getCurrentState();
@@ -207,8 +245,10 @@ class GameState extends Phaser.State
 		game.load.spritesheet("cowzombie", 'gfx/cow_zombie.png', 32, 32);
 		game.load.spritesheet("maggot", 'gfx/maggot.png', 32, 32);
 		game.load.spritesheet("pumpkin", 'gfx/pumpkin.png', 32, 32);
+		game.load.spritesheet("seed", 'gfx/seed.png', 32, 32);
 		game.load.spritesheet('gore', 'gfx/gore.png', 16, 16);
 		game.load.spritesheet('poof', 'gfx/poof.png', 32, 32);
+		game.load.spritesheet('birdtotem', 'gfx/bird_totem.png', 32, 32);
 		
 		//game.load.spritesheet('propeller', 'gfx/propeller.png', 16, 64, 4);
 		game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
@@ -224,7 +264,7 @@ class GameState extends Phaser.State
 		this.goreEmitter.start(true, 2000, null, 20);
 	}
 
-	spawnPoof(obj)
+	spawnPoof(x, y)
 	{
 		var poof = game.add.sprite(obj.x, obj.y, 'poof');
 		poof.anchor.set(0.5);
@@ -246,13 +286,6 @@ class GameState extends Phaser.State
 	{
 		this.spawnGoreParticles(obj.x, obj.y, -100, 100);
 		new CorpseZombie(obj.x, obj.y);
-		obj.destroy();
-	}
-
-	spawnMaggot(obj)
-	{
-		this.spawnPoof(obj);
-		new Maggot(obj.x, obj.y);
 		obj.destroy();
 	}
 
@@ -282,11 +315,13 @@ class GameState extends Phaser.State
 		game.physics.p2.setImpactEvents(true);
 	  
 		this.bg = game.add.sprite(0, 0, 'bg')
-		this.livingCG = game.physics.p2.createCollisionGroup();
-		this.livingGroup = game.add.group();
 
 		this.staticCG = game.physics.p2.createCollisionGroup();
 		this.staticGroup = game.add.group();
+
+		this.livingCG = game.physics.p2.createCollisionGroup();
+		this.livingGroup = game.add.group();
+
 		
 		// bg collision
 		this.bgCollision = game.add.sprite(0, 0);		
@@ -296,7 +331,6 @@ class GameState extends Phaser.State
 		this.bgCollision.body.addRectangle(1024, 48, 0, 240 + 24);
 		// ceil:
 		this.bgCollision.body.addRectangle(1024, 64, 0, 0 - 256);
-		this.bgCollision.body.debug = true;
 		this.bgCollision.body.static = true;
 		this.bgCollision.body.gravity = 0;
 		this.bgCG = game.physics.p2.createCollisionGroup();
@@ -310,7 +344,6 @@ class GameState extends Phaser.State
 		this.bgCollisionSides.body.clearShapes();
 		this.bgCollisionSides.body.addRectangle(64, 512, 0 - 48, 0);
 		this.bgCollisionSides.body.addRectangle(64, 512, 512 + 48, 0);
-		this.bgCollisionSides.body.debug = true;
 		this.bgCollisionSides.body.static = true;
 		this.bgCollisionSides.body.gravity = 0;
 		this.bgCollisionSides.body.collides(this.livingCG);
@@ -336,7 +369,7 @@ class GameState extends Phaser.State
 
 		// drag collision
 		this.mouseBody = game.add.sprite(0, 0);
-		game.physics.p2.enable(this.mouseBody, true);
+		game.physics.p2.enable(this.mouseBody);
 		this.mouseBody.body.setCircle(1);
 		this.mouseBody.body.static = true;
 		this.mouseCG = game.physics.p2.createCollisionGroup();
@@ -380,6 +413,7 @@ class GameState extends Phaser.State
 		{
 			this.draggedBody = bodies[0];
 			
+			this.draggedBody.parent.sprite.bringToTop();
 			this.draggedBody.parent.sprite.isOnGround = false;
 			this.draggedBody.parent.sprite.animations.play('drag');
 			
@@ -394,12 +428,19 @@ class GameState extends Phaser.State
 
 	checkDragCombine(sprite, dragSprite)
 	{
-		if (sprite instanceof Cow && dragSprite instanceof Maggot)
+		if ((sprite instanceof Cow) && !sprite.zombie && (dragSprite instanceof Maggot))
 		{
 			this.spawnCowZombie(sprite.x, sprite.y);
 			sprite.destroy();
 			dragSprite.destroy();
 			console.log("maggot combine with cow");
+		} else if ((sprite instanceof CorpseZombie) && (dragSprite instanceof Maggot)) {
+			new BirdTotem(sprite.x, sprite.y);
+			sprite.destroy();
+			dragSprite.destroy();
+			this.spawnPoof(sprite.x, sprite.y);
+		} else if ((sprite instanceof BirdTotem) && (dragSprite instanceof Maggot)) {
+			sprite.eatMaggot(dragSprite);
 		}
 	}
 
@@ -422,7 +463,9 @@ class GameState extends Phaser.State
 
 			// check if we can combine with another object
 			var mousePos = new Phaser.Point(pointer.x / game.camera.scale.x, pointer.y / game.camera.scale.y);
-			var bodies = game.physics.p2.hitTest(mousePos, this.livingGroup.children);
+			var bodiesLiving = game.physics.p2.hitTest(mousePos, this.livingGroup.children);
+			var bodiesStatic = game.physics.p2.hitTest(mousePos, this.staticGroup.children);
+			var bodies = bodiesLiving.concat(bodiesStatic);
 			if (bodies.length > 0)
 			{
 				for (var i = 0; i < bodies.length; i++) {
