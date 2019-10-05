@@ -20,7 +20,7 @@ class Corpse extends StaticObject
 {
 	constructor(x, y)
 	{
-		super(x, y, 'corpse', 32, 32, 0, 0);
+		super(x, y, 'corpse', 32, 16, 0, 8);
 		this.time = 0;
 	}
 
@@ -37,7 +37,7 @@ class CorpseZombie extends StaticObject
 {
 	constructor(x, y)
 	{
-		super(x, y, 'corpsezombie', 32, 32, 0, 0);
+		super(x, y, 'corpsezombie', 32, 16, 0, 8);
 	}
 }
 
@@ -60,7 +60,7 @@ class DraggableObject extends Phaser.Sprite
 		this.animations.add('walk', [4,5,6,7], 4, true);
 		this.animations.add('drag', [8], 1, true);
 		this.animations.play('idle');
-
+		
 		//this.inputEnabled = true; // allow sprites to be input-enabled
 		//this.input.enableDrag(); // allow dragging; true -> snap to center
 		//this.events.onDragStart.add(this.startDrag, this);
@@ -91,7 +91,7 @@ class Maggot extends DraggableObject
 {
 	constructor(x, y)
 	{
-		super(x, y, 'maggot', 32, 32, 0, 0);
+		super(x, y, 'maggot', 20, 10, 0, 0);
 	}
 }
 
@@ -102,7 +102,7 @@ class Cow extends DraggableObject
 		super(x, y, 'cow', 28, 20, 0, 5);
 		this.state = 0; // wait
 		this.direction = 1; // right
-		this.stateTimer = 1000;
+		this.stateTimer = 1000;	
 	}
 
 	update()
@@ -281,7 +281,8 @@ class GameState extends Phaser.State
 			// this.mouseBody.y / game.camera.scale.y);
 		var mousePos = new Phaser.Point(this.mouseBody.body.x,this.mouseBody.body.y);
 
-		if (pointerPos.y > this.maxMouseY + 16 / game.camera.scale.y) return;
+		// enable to not take cows etc. when mouse is below ground
+		//if (pointerPos.y > this.maxMouseY + 16 / game.camera.scale.y) return;
 		
 		var bodies = game.physics.p2.hitTest(mousePos, this.livingGroup.children);
 		if (bodies.length > 0)
