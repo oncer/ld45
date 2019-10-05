@@ -1,9 +1,9 @@
 
-class Cow extends Phaser.Sprite
+class DraggableObject extends Phaser.Sprite
 {
-	constructor(x, y)
+	constructor(x, y, sprite)
 	{
-		super(game, x, y, 'cow');
+		super(game, x, y, sprite);
 		game.physics.enable(this, Phaser.Physics.ARCADE);
 		this.body.setSize(64, 64);
 		this.animations.add('idle', [0,1,2,3], 4, true);
@@ -35,6 +35,14 @@ class Cow extends Phaser.Sprite
 		// limit vertical dragging (can't be dragged into ground)
 		if (this.y > 240-32) this.y = 240-32;
 	}
+}
+
+class Cow extends DraggableObject
+{
+	constructor(x, y)
+	{
+		super(x, y, 'cow')
+	}
 
 	update()
 	{
@@ -57,8 +65,7 @@ preload ()
 create ()
 {
 	// bg collision
-	this.bgCollision = game.add.sprite(0, 0, 'bgCol');
-	//this.bgCollision.name = 'bgCol';
+	this.bgCollision = game.add.sprite(0, 0);
 
 	game.physics.enable(this.bgCollision, Phaser.Physics.ARCADE);
 
