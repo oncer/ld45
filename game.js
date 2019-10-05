@@ -72,7 +72,7 @@ class BirdTotem extends StaticObject
 				this.animations.play('idle');
 
 				if (this.maggotCount >= 3) {
-					this.seedTimer = 1000;
+					this.seedTimer = 2000;
 					this.maggotCount = 0;
 				}
 			}
@@ -97,14 +97,6 @@ class BirdTotem extends StaticObject
 	}
 }
 
-class Seed extends StaticObject
-{
-	constructor(x, y)
-	{
-		super(x, y, 'seed', 32, 32, 0, 0);
-	}
-}
-
 class DraggableObject extends Phaser.Sprite
 {
 	constructor(x, y, sprite, cWidth, cHeight, cX, cY)
@@ -122,8 +114,16 @@ class DraggableObject extends Phaser.Sprite
 
 		//this.body.addRectangle(32, 32, 0, 0);
 		this.animations.add('idle', [0,1,2,3], 4, true);
-		this.animations.add('walk', [4,5,6,7], 4, true);
-		this.animations.add('drag', [8], 1, true);
+		if (this.animations.frameTotal > 4) {
+			this.animations.add('walk', [4,5,6,7], 4, true);
+		} else {
+			this.animations.add('walk', [0], 1, true);
+		}
+		if (this.animations.frameTotal > 8) {
+			this.animations.add('drag', [8], 1, true);
+		} else {
+			this.animations.add('drag', [0], 1, true);
+		}
 		this.animations.play('idle');
 		
 		this.isOnGround = true;
@@ -152,6 +152,14 @@ class DraggableObject extends Phaser.Sprite
 	deadlyImpact()
 	{
 		console.log("deadlyImpact not implemented!");
+	}
+}
+
+class Seed extends DraggableObject
+{
+	constructor(x, y)
+	{
+		super(x, y, 'seed', 32, 32, 0, 0);
 	}
 }
 
