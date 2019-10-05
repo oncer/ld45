@@ -4,7 +4,7 @@ class StaticObject extends Phaser.Sprite
 	constructor(x, y, sprite, cWidth, cHeight, cX, cY)
 	{
 		super(game, x, y, sprite)
-		game.physics.p2.enable(this, true);
+		game.physics.p2.enable(this, false);
 		this.body.clearShapes();
 		this.body.addRectangle(cWidth, cHeight, cX, cY);
 		var gstate = game.state.getCurrentState();
@@ -46,7 +46,7 @@ class DraggableObject extends Phaser.Sprite
 	constructor(x, y, sprite, cWidth, cHeight, cX, cY)
 	{
 		super(game, x, y, sprite);
-		game.physics.p2.enable(this, true);
+		game.physics.p2.enable(this, false);
 		this.body.clearShapes();
 		this.body.addRectangle(cWidth, cHeight, cX, cY);
 		var gstate = game.state.getCurrentState();
@@ -226,19 +226,21 @@ class GameState extends Phaser.State
 
 	spawnPoof(obj)
 	{
-		var poof = game.add.sprite(obj.x, obj.y, 'poof');
-		poof.anchor.set(0.5);
+		//var poof = game.add.sprite(obj.x, obj.y, 'poof');
+		var poof = game.add.sprite(obj.x, this.spawnObjY, 'poof');
+		poof.anchor.set(0.5, 0.25);
 		var anim = poof.animations.add('poof');
 		anim.onComplete.add(function(sprite, anim){
 			sprite.destroy();
 		});
-		anim.play();
+		anim.play(30);
 	}
 
 	spawnCorpse(obj)
 	{
 		this.spawnGoreParticles(obj.x, obj.y, -100, 100);
-		new Corpse(obj.x, obj.y);
+		//new Corpse(obj.x, obj.y);
+		new Corpse(obj.x, this.spawnObjY);
 		obj.destroy();
 	}
 
@@ -273,6 +275,9 @@ class GameState extends Phaser.State
 		
 		// mouse shall not be used below this value
 		this.maxMouseY = 232;
+		
+		// use this to spawn objects at that position when they should spawn on the floor
+		this.spawnObjY = 224;
 	
 		// game physics
 		game.physics.startSystem(Phaser.Physics.P2JS);
@@ -296,7 +301,7 @@ class GameState extends Phaser.State
 		this.bgCollision.body.addRectangle(1024, 48, 0, 240 + 24);
 		// ceil:
 		this.bgCollision.body.addRectangle(1024, 64, 0, 0 - 256);
-		this.bgCollision.body.debug = true;
+		this.bgCollision.body.debug = false;
 		this.bgCollision.body.static = true;
 		this.bgCollision.body.gravity = 0;
 		this.bgCG = game.physics.p2.createCollisionGroup();
@@ -310,7 +315,7 @@ class GameState extends Phaser.State
 		this.bgCollisionSides.body.clearShapes();
 		this.bgCollisionSides.body.addRectangle(64, 512, 0 - 48, 0);
 		this.bgCollisionSides.body.addRectangle(64, 512, 512 + 48, 0);
-		this.bgCollisionSides.body.debug = true;
+		this.bgCollisionSides.body.debug = false;
 		this.bgCollisionSides.body.static = true;
 		this.bgCollisionSides.body.gravity = 0;
 		this.bgCollisionSides.body.collides(this.livingCG);
