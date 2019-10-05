@@ -5,6 +5,9 @@ preload ()
 {
 
 	game.load.image('bg', 'gfx/background.png');
+	
+	game.load.spritesheet("cow", 'gfx/cow.png', 32, 32);
+	
 	//game.load.spritesheet('propeller', 'gfx/propeller.png', 16, 64, 4);
 	game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
 	//game.load.audio('music', 'sfx/theme.ogg');
@@ -12,10 +15,16 @@ preload ()
 
 create ()
 {
+  console.log("My Message");
+  
 	// input keys
 	this.keySpacebar = this.game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
 
 	this.bg = game.add.sprite(0, 0, 'bg')
+	
+	this.cow = game.add.sprite(32, 208, 'cow');
+	var anim = this.cow.animations.add('cowidle', [0, 1, 2, 3], 4, true).play(); // name, frames, framerate
+	console.log(anim);
 
 	game.physics.startSystem(Phaser.Physics.P2JS)
 	game.physics.p2.gravity.y = 320;
@@ -36,6 +45,9 @@ create ()
 	this.debugText = game.add.text(256, 240, "debug text", style);
 	this.debugText.anchor.set(0.5);
 	this.debugText.exists = false;
+	
+    this.cow.inputEnabled = true; // allow sprites to be input-enabled
+    this.cow.input.enableDrag(true); // allow dragging; true -> snap to center
 
 	// gore emitter
 	//this.goreEmitter = game.add.emitter(0, 0, 100);
