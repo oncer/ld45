@@ -15,8 +15,20 @@ preload ()
 
 create ()
 {
-  console.log("My Message");
+	console.log("My Message");
+	
+	var bgCollision;
+  
+	// bg collision
+	bgCollision = game.add.sprite(0, 0, 'bgCol');
+    bgCollision.name = 'bgCol';
 
+    game.physics.enable(bgCollision, Phaser.Physics.ARCADE);
+
+    bgCollision.body.setSize(0, 240, 512, 288);
+    bgCollision.body.immovable = true;
+	
+	// game physics
 	game.physics.startSystem(Phaser.Physics.ARCADE);
 	game.physics.arcade.gravity.y = 100;
   
