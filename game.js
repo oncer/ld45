@@ -22,7 +22,6 @@ create ()
 	
 	// bg collision
 	this.bgCollision = game.add.sprite(0, 0, 'bgCol');
-	//this.bgCollision.name = 'bgCol';
 
 	game.physics.enable(this.bgCollision, Phaser.Physics.ARCADE);
 
@@ -36,11 +35,15 @@ create ()
   
 	this.bg = game.add.sprite(0, 0, 'bg')
 	
+	// Cow sprites
 	this.cow = game.add.sprite(32, 208, 'cow');
 	game.physics.enable(this.cow, Phaser.Physics.ARCADE);
 	this.cow.body.setSize(64, 64);
-	var anim = this.cow.animations.add('cowidle', [0, 1, 2, 3], 4, true).play(); // name, frames, framerate
-	console.log(anim);
+	this.cow.animations.add('cowidle', [0, 1, 2, 3], 4, true); // name, frames, framerate
+	this.cow.animations.add('cowdrag', [8], 4, true);
+	this.cow.animations.add('cowwalk', [4, 5, 6, 7], 4, true); // name, frames, framerate
+	
+	this.cow.animations.play('cowidle');
 
 	//game.physics.startSystem(Phaser.Physics.P2JS)
 	//game.physics.p2.gravity.y = 320;
@@ -62,6 +65,7 @@ create ()
 	this.debugText.anchor.set(0.5);
 	this.debugText.exists = false;
 	
+	// Cow dragable
     this.cow.inputEnabled = true; // allow sprites to be input-enabled
     this.cow.input.enableDrag(true); // allow dragging; true -> snap to center
 	
@@ -95,13 +99,13 @@ startDrag()
     // can't be moved by physics nor input
     this.cow.body.moves = false;
 	this.cow.frame = 8;
-	this.cow.animations.add('cowdrag', [8], 4, true).play(); // name, frames, framerate
+	this.cow.animations.play('cowdrag');
 }
 stopDrag()
 {
     // can be moved by physics or input again
     this.cow.body.moves = true;
-	this.cow.animations.add('cowidle', [0, 1, 2, 3], 4, true).play(); // name, frames, framerate
+	this.cow.animations.play('cowidle');
 }
 dragUpdate()
 {
