@@ -53,6 +53,7 @@ class DraggableObject extends Phaser.Sprite
 		this.body.setCollisionGroup(gstate.livingCG);
 		gstate.livingGroup.add(this);
 		this.body.collides(gstate.bgCG, gstate.draggableCollides, gstate);
+		this.body.collides(gstate.bgSidesCG);
 		this.body.angularDamping = 0.995;
 
 		//this.body.addRectangle(32, 32, 0, 0);
@@ -260,17 +261,34 @@ class GameState extends Phaser.State
 		this.staticGroup = game.add.group();
 		
 		// bg collision
-		this.bgCollision = game.add.sprite(0, 0);
+		this.bgCollision = game.add.sprite(0, 0);		
 		game.physics.p2.enable(this.bgCollision);
 		this.bgCollision.body.clearShapes();
+		// floor:
 		this.bgCollision.body.addRectangle(1024, 48, 0, 240 + 24);
+		// ceil:
+		this.bgCollision.body.addRectangle(1024, 64, 0, 0 - 256);
+		this.bgCollision.body.debug = true;
 		this.bgCollision.body.static = true;
 		this.bgCollision.body.gravity = 0;
 		this.bgCG = game.physics.p2.createCollisionGroup();
 		this.bgCollision.body.setCollisionGroup(this.bgCG);
 		this.bgCollision.body.collides(this.livingCG);
 		this.bgCollision.body.collides(this.staticCG);
-
+		
+		// sides:
+		this.bgCollisionSides = game.add.sprite(0, 0);
+		game.physics.p2.enable(this.bgCollisionSides);
+		this.bgCollisionSides.body.clearShapes();
+		this.bgCollisionSides.body.addRectangle(64, 512, 0 - 48, 0);
+		this.bgCollisionSides.body.addRectangle(64, 512, 512 + 48, 0);
+		this.bgCollisionSides.body.debug = true;
+		this.bgCollisionSides.body.static = true;
+		this.bgCollisionSides.body.gravity = 0;
+		this.bgCollisionSides.body.collides(this.livingCG);
+		this.bgSidesCG = game.physics.p2.createCollisionGroup();
+		this.bgCollisionSides.body.setCollisionGroup(this.bgSidesCG);
+		
 		// spawn the first cow
 		this.spawnCow(32, 240 - 16);
 
@@ -290,7 +308,7 @@ class GameState extends Phaser.State
 
 		// drag collision
 		this.mouseBody = game.add.sprite(0, 0);
-		game.physics.p2.enable(this.mouseBody,true);
+		game.physics.p2.enable(this.mouseBody, true);
 		this.mouseBody.body.setCircle(1);
 		this.mouseBody.body.static = true;
 		this.mouseCG = game.physics.p2.createCollisionGroup();
