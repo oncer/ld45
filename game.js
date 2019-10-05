@@ -66,6 +66,7 @@ create ()
     this.cow.input.enableDrag(true); // allow dragging; true -> snap to center
 	
 	this.cow.events.onDragStart.add(this.startDrag, this);
+	this.cow.events.onDragUpdate.add(this.dragUpdate, this);
     this.cow.events.onDragStop.add(this.stopDrag, this);
 
 	// gore emitter
@@ -89,15 +90,22 @@ create ()
 	game.camera.flash('#000000');
 }
 
-startDrag() {
-
+startDrag()
+{
     // can't be moved by physics nor input
     this.cow.body.moves = false;
+	this.cow.frame = 8;
+	this.cow.animations.add('cowdrag', [8], 4, true).play(); // name, frames, framerate
 }
-stopDrag() {
-
+stopDrag()
+{
     // can be moved by physics or input again
     this.cow.body.moves = true;
+	this.cow.animations.add('cowidle', [0, 1, 2, 3], 4, true).play(); // name, frames, framerate
+}
+dragUpdate()
+{
+    // limit vertical dragging (can't be dragged into ground)
 	if (this.cow.y > 240-32) this.cow.y = 240-32;
 }
 
