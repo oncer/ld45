@@ -45,6 +45,9 @@ create ()
 	this.debugText = game.add.text(256, 240, "debug text", style);
 	this.debugText.anchor.set(0.5);
 	this.debugText.exists = false;
+	
+    this.cow.inputEnabled = true; // allow sprites to be input-enabled
+    this.cow.input.enableDrag(true); // allow dragging; true -> snap to center
 
 	// gore emitter
 	//this.goreEmitter = game.add.emitter(0, 0, 100);
