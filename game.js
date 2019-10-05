@@ -18,10 +18,12 @@ create ()
   console.log("My Message");
 
 	game.physics.startSystem(Phaser.Physics.ARCADE);
+	game.physics.arcade.gravity.y = 100;
   
 	this.bg = game.add.sprite(0, 0, 'bg')
 	
 	this.cow = game.add.sprite(32, 208, 'cow');
+	game.physics.enable(this.cow, Phaser.Physics.ARCADE);
 	var anim = this.cow.animations.add('cowidle', [0, 1, 2, 3], 4, true).play(); // name, frames, framerate
 	console.log(anim);
 
