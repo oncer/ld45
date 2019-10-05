@@ -267,7 +267,7 @@ class GameState extends Phaser.State
 	spawnPoof(x, y)
 	{
 		//var poof = game.add.sprite(obj.x, obj.y, 'poof');
-		var poof = game.add.sprite(obj.x, this.spawnObjY, 'poof');
+		var poof = game.add.sprite(x, this.spawnObjY, 'poof');
 		poof.anchor.set(0.5, 0.25);
 		var anim = poof.animations.add('poof');
 		anim.onComplete.add(function(sprite, anim){
@@ -308,6 +308,9 @@ class GameState extends Phaser.State
 		
 		// mouse shall not be used below this value
 		this.maxMouseY = 232;
+
+		// use this to spawn objects at that position when they should spawn on the floor
+		this.spawnObjY = 224;
 	
 		// game physics
 		game.physics.startSystem(Phaser.Physics.P2JS);
@@ -434,7 +437,7 @@ class GameState extends Phaser.State
 			this.spawnCowZombie(sprite.x, sprite.y);
 			sprite.destroy();
 			dragSprite.destroy();
-			console.log("maggot combine with cow");
+			this.spawnPoof(sprite.x, sprite.y);
 		} else if ((sprite instanceof CorpseZombie) && (dragSprite instanceof Maggot)) {
 			new BirdTotem(sprite.x, sprite.y);
 			sprite.destroy();
