@@ -5,6 +5,9 @@ preload ()
 {
 
 	game.load.image('bg', 'gfx/background.png');
+	
+	game.load.spritesheet("cow", 'gfx/cow.png', 32, 32);
+	
 	//game.load.spritesheet('propeller', 'gfx/propeller.png', 16, 64, 4);
 	game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
 	//game.load.audio('music', 'sfx/theme.ogg');
@@ -18,6 +21,10 @@ create ()
 	this.keySpacebar = this.game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
 
 	this.bg = game.add.sprite(0, 0, 'bg')
+	
+	this.cow = game.add.sprite(32, 208, 'cow');
+	var anim = this.cow.animations.add('cowidle', [0, 1, 2, 3], 4, true).play(); // name, frames, framerate
+	console.log(anim);
 
 	game.physics.startSystem(Phaser.Physics.P2JS)
 	game.physics.p2.gravity.y = 320;
