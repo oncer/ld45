@@ -452,6 +452,14 @@ class SeedTriangle extends DraggableObject
 	}
 }
 
+class Tomato extends DraggableObject
+{
+	constructor(x, y)
+	{
+		super(x, y, 'tomato', 15, 15, 0, 0);
+	}
+}
+
 class Pumpkin extends DraggableObject
 {
 	constructor(x, y)
@@ -488,8 +496,10 @@ class Maggot extends DraggableObject
 		this.animations.getAnimation('idle').onLoop.add(this.animationLooped, this);
 		this.animations.getAnimation('walk').onLoop.add(this.animationLooped, this);
 		
-		this.alpha = 0;
-		game.add.tween(this).to( { alpha: 1 }, 1000, Phaser.Easing.Linear.None, true);
+		if (type === 'maggot') {
+			this.alpha = 0;
+			game.add.tween(this).to( { alpha: 1 }, 1000, Phaser.Easing.Linear.None, true);
+		}
 	}
 
 	animationLooped(sprite, anim)
@@ -688,6 +698,7 @@ class GameState extends Phaser.State
 		game.load.spritesheet("corpsezombie", 'gfx/corpse_zombie.png', 32, 32);
 		game.load.spritesheet("corpsepumpkin", 'gfx/corpse_pumpkin.png', 32, 32);
 		game.load.spritesheet("maggot", 'gfx/maggot.png', 32, 32);
+		game.load.spritesheet("maggotblood", 'gfx/maggot_blood.png', 32, 32);
 		game.load.spritesheet("pumpkin", 'gfx/pumpkin.png', 32, 32);
 		game.load.spritesheet("pumpkinzombie", 'gfx/pumpkin_zombie.png', 32, 32);
 		game.load.spritesheet("pumpkinsalad", 'gfx/pumpkin_salad.png', 32, 32);
@@ -700,6 +711,7 @@ class GameState extends Phaser.State
 		game.load.spritesheet('birdtotemblood', 'gfx/bird_totem_blood.png', 32, 32);
 		game.load.spritesheet("salad", 'gfx/salad.png', 32, 32);
 		game.load.spritesheet("vampirebat", 'gfx/bat.png', 32, 32);
+		game.load.spritesheet("tomato", 'gfx/tomato.png', 32, 32);
 		
 		//game.load.spritesheet('propeller', 'gfx/propeller.png', 16, 64, 4);
 		game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
@@ -1086,6 +1098,15 @@ class GameState extends Phaser.State
 				gs.spawnPoof(sprite.x, sprite.y);
 			}
 		}
+		else if ((sprite instanceof Maggot) && (dragSprite instanceof Tomato) && sprite.type === 'maggot')
+		{
+			return function(){
+				new Maggot(sprite.x, sprite.y, 'maggotblood');
+				sprite.destroy();
+				dragSprite.destroy();
+				gs.spawnPoof(sprite.x, sprite.y);
+			}
+		}
 
 		return false;
 	}
@@ -1163,7 +1184,7 @@ class GameState extends Phaser.State
 			case 5:
 				new Seed(this.mouseBody.x, this.mouseBody.y);
 				break;
-			case 7:
+			case 6:
 				new Tomato(this.mouseBody.x, this.mouseBody.y);
 				break;
 		}
