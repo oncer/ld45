@@ -661,7 +661,29 @@ class Cow extends DraggableObject
 		this.type = type;
 		this.state = 0; // wait
 		this.setDirection(1); // right
-		this.stateTimer = 1000;	
+		this.stateTimer = 1000;
+		this.maggotCount = 0;
+		this.maxMaggots = 2;
+		if (type === 'cowzombie') {
+			this.bar.percent = 0.5; // for 1 out of 2 maggots
+			this.bar.targetPercent = 1;
+			this.bar.setVisible(true);
+			this.bar.setAlpha(1);
+			this.bar.hide();
+		}
+	}
+
+	eatMaggot(obj)
+	{
+		obj.destroy();
+		this.maggotCount++;
+		this.bar.setPercent(this.maggotCount / this.maxMaggots);
+		var gstate = game.state.getCurrentState();
+		if (this.maggotCount >= this.maxMaggots) {
+			gstate.spawnCowZombie(this.x, this.y, this.direction);
+			this.destroy();
+		}
+		gstate.spawnPoof(obj.x, obj.y);
 	}
 
 	update()
@@ -1074,11 +1096,8 @@ class GameState extends Phaser.State
 				if (dragSprite.type === 'maggotblood') {
 					gs.spawnCowVampire(sprite.x, sprite.y, sprite.direction);
 				} else {
-					gs.spawnCowZombie(sprite.x, sprite.y, sprite.direction);
+					sprite.eatMaggot(dragSprite);
 				}
-				sprite.destroy();
-				dragSprite.destroy();
-				gs.spawnPoof(sprite.x, sprite.y);
 			}
 		} else if ((sprite instanceof CorpseZombie) && sprite.canGet == true && (dragSprite instanceof Maggot) && dragSprite.type === 'maggot') {
 			return function(){
