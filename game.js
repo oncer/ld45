@@ -1,17 +1,19 @@
 const PumpkinMaxCorn = 2;
-const PumpkinZombieMaxSalads = 5;
+const PumpkinZombieMaxSalads = 3;
 const CowMaxMaggots = 2;
-const BirdMaxMaggots = 4;
+const BirdMaxMaggots = 3;
 const BirdMaxMaggotsBlood = 2;
 
 class Bar extends Phaser.Sprite
 {
-	constructor(target)
+	constructor(target, xoff, yoff)
 	{
 		super(game, 0, 0);
 		this.target = target;
-		this.bg = target.addChild(game.make.sprite(target.width/2 - 32, - 26, 'bar_bg'));
-		this.fg = target.addChild(game.make.sprite(target.width/2 - 32 + 2, -24, 'bar_fg'));
+		this.xoff = xoff;
+		this.yoff = yoff;
+		this.bg = target.addChild(game.make.sprite(target.width/2 + xoff, yoff - 2, 'bar_bg'));
+		this.fg = target.addChild(game.make.sprite(target.width/2 + xoff + 2, yoff, 'bar_fg'));
 		this.barWidth = this.fg.width;
 		this.barHeight = this.fg.height;
 		this.setVisible(false);
@@ -26,9 +28,9 @@ class Bar extends Phaser.Sprite
 	{
 		this.fg.scale.x = dir;
 		if (dir < 0) {
-			this.fg.x = this.target.width / 2 + 30;
+			this.fg.x = this.target.width / 2 - (this.xoff + 2);
 		} else {
-			this.fg.x = this.target.width / 2 - 30;
+			this.fg.x = this.target.width / 2 + (this.xoff + 2);
 		}
 	}
 
@@ -109,7 +111,7 @@ class InteractiveObject extends Phaser.Sprite
 		this.body.clearShapes();
 		this.body.addRectangle(cWidth, cHeight, cX, cY);
 
-		this.bar = game.add.existing(new Bar(this));
+		this.bar = game.add.existing(new Bar(this, -32, -24));
 		this.setDirection(1);
 	}
 
@@ -505,6 +507,14 @@ class Tomato extends DraggableObject
 	}
 }
 
+class Avocado extends DraggableObject
+{
+	constructor(x, y)
+	{
+		super(x, y, 'avocado', 16, 20, 0, 0);
+	}
+}
+
 class Pumpkin extends DraggableObject
 {
 	constructor(x, y)
@@ -853,6 +863,7 @@ class GameState extends Phaser.State
 		game.load.spritesheet("tomato", "gfx/tomato.png", 32, 32);
 		game.load.spritesheet("corn", "gfx/corn.png", 32, 32);
 		game.load.spritesheet("baby", "gfx/baby.png", 32, 32);
+		game.load.spritesheet("avocado", "gfx/avocado.png", 32, 32);
 
 		
 		//game.load.spritesheet('propeller', 'gfx/propeller.png', 16, 64, 4);
@@ -1389,6 +1400,7 @@ class GameState extends Phaser.State
 		game.input.keyboard.addKey(Phaser.Keyboard.SEVEN).onDown.add(function() {this.functionKey(6);}, this);
 		game.input.keyboard.addKey(Phaser.Keyboard.EIGHT).onDown.add(function() {this.functionKey(7);}, this);
 		game.input.keyboard.addKey(Phaser.Keyboard.NINE).onDown.add(function() {this.functionKey(8);}, this);
+		game.input.keyboard.addKey(Phaser.Keyboard.ZERO).onDown.add(function() {this.functionKey(9);}, this);
 	}
 	
 	// Add debug spawns here!
@@ -1420,6 +1432,9 @@ class GameState extends Phaser.State
 				break;
 			case 8:
 				new Corn(this.mouseBody.x, this.mouseBody.y);
+				break;
+			case 9:
+				new Avocado(this.mouseBody.x, this.mouseBody.y);
 				break;
 		}
 
