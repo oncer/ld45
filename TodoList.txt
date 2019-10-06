@@ -28,7 +28,7 @@ crafting:
 [x] corn: give any cow-corpse a triangle-seed
 [x] pumpkin-human-baby: give normal pumpkin 2 corn // OLD: give it to zombie pumpkin
 [x] human-like cow: give pumpkin-human-baby to normal? cow
-[ ] human-like cow-corpse
+[x] human-like cow-corpse
 [ ] avocados: put triangle-seed onto human-like cow-corpse
 [ ] finished vegan meal (10? salads, 5? tomatoes, 1? avocados)
 
