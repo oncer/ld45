@@ -33,22 +33,22 @@ crafting:
 [ ] finished vegan meal (10? salads, 5? tomatoes, 1? avocados)
 
 graphics:
-[ ] triangle seed
+[x] triangle seed
 [x] salad
-[ ] tomatoes
+[x] tomatoes
 [ ] avocados
 [ ] corn
 [ ] finished vegan meal
 
 [x] zombie-pumpkin
-[ ] bat (missing: bite)
+[x] bat (missing: bite)
 
 [ ] maybe: zombie cow-gore? (red gore flies away, but the corpse is green)
 [ ] maybe: pumpkin cow-gore? (red gore flies away, but the corpse is orange)
 [x] pumpkin cow
 [x] pumpkin cow-corpse
-[ ] vampire cow
-[ ] vampire cow-corpse
+[x] vampire cow
+[x] vampire cow-corpse
 [ ] pumpkin-human-baby
 [ ] human-like cow
 [ ] human-like cow corpse
