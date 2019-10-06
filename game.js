@@ -100,7 +100,7 @@ class BirdTotem extends StaticObject
 			if (this.seedTimer <= 0) {
 				var x = this.x + 20 * this.direction;
 				var y = this.y;
-				new /*Seed*/Pumpkin(x, y);
+				new Seed(x, y);
 				game.state.getCurrentState().spawnPoof(x, y);
 			}
 		}
@@ -580,6 +580,21 @@ class GameState extends Phaser.State
 				sprite.eatMaggot(dragSprite);
 			}
 		}
+		// test: give pumpkin to cow
+		else if ((sprite instanceof Corpse) && (dragSprite instanceof Seed))
+		{
+			return function(){
+				//gs.spawnCowZombie(sprite.x, sprite.y, sprite.direction);
+				
+				new Pumpkin(sprite.x, sprite.y);
+				sprite.destroy();
+				dragSprite.destroy();
+				gs.spawnPoof(sprite.x, sprite.y);
+				
+				//game.state.getCurrentState().spawnPoof(x, y);
+			}
+		}
+		//
 
 		return false;
 	}
