@@ -1094,7 +1094,10 @@ class GameState extends Phaser.State
 		{
 			return function(){
 				if (dragSprite.type === 'maggotblood') {
+					sprite.destroy()
+					dragSprite.destroy();
 					gs.spawnCowVampire(sprite.x, sprite.y, sprite.direction);
+					gs.spawnPoof(dragSprite.x, dragSprite.y);
 				} else {
 					sprite.eatMaggot(dragSprite);
 				}
