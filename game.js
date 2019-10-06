@@ -246,7 +246,7 @@ class CorpseCowhuman extends StaticObject
 	
 	spawnTree()
 	{
-		//new Avocado(this.x, this.y+10);
+		new Avocado(this.x, this.y);
 		//this.destroy();
 		this.animations.stop();
 	}
