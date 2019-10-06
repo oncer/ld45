@@ -69,12 +69,13 @@ class Bar extends Phaser.Sprite
 
 	setPercent(percent)
 	{
-		this.targetPercent = percent;
 		if (percent == 0) {
 			this.hide();
-		} else if (!this.visible && this.targetPercent > 0) {
+		} else if (!this.visible && percent > 0) {
 			this.show();
+			this.percent = this.targetPercent;
 		}
+		this.targetPercent = percent;
 	}
 
 	setVisible(visible)
@@ -304,7 +305,8 @@ class BirdTotem extends StaticObject
 		obj.destroy();
 		if (this.type === 'birdtotem' && obj.type === 'maggotblood') {
 			// bird totem turns into blood totem
-			new BirdTotem(this.x, this.y, 'birdtotemblood');
+			var totem = new BirdTotem(this.x, this.y, 'birdtotemblood');
+			totem.direction = this.direction;
 			game.state.getCurrentState().spawnPoof(this.x, this.y);
 			this.destroy();
 		} else {
@@ -1376,7 +1378,7 @@ class GameState extends Phaser.State
 	{
 		if (other.sprite === this.bgCollision) {
 			drag.sprite.isOnGround = true;
-			if (this.mouseSpring === undefined && drag.sprite.prevY > 350)
+			if (this.mouseSpring === undefined && drag.sprite.prevY > 230)
 			{
 				drag.sprite.deadlyImpact();
 			}
