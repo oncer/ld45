@@ -47,8 +47,8 @@ class Corpse extends StaticObject
 
 	decay()
 	{
-		new Maggot(this.x, this.y);
-		game.state.getCurrentState().spawnPoof(this.x, this.y);
+		game.state.getCurrentState().spawnMaggot(this);
+		//game.state.getCurrentState().spawnPoof(this.x, this.y);
 		this.decayed = true;
 	}
 }
@@ -152,18 +152,16 @@ class DraggableObject extends Phaser.Sprite
 		this.animations.play('idle');
 		
 		this.isOnGround = true;
-		this.justSpawned = true;
+		this.justSpawned = true;		
 	}
 
 	update()
 	{
 		if (this.isOnGround)
 		{
-			//console.log("ON GROUND");
 			this.body.rotation = 0;
 		}
 		this.prevY = this.body.velocity.y;
-		//else console.log("NOT");
 		
 		if (!this.justSpawned && (this.x < -40 || this.x > game.world.width + 40)) {
 			console.log("draggable out of bounds, destroyed");
@@ -198,6 +196,9 @@ class Maggot extends DraggableObject
 		this.stateTimer = 1000;
 		this.animations.getAnimation('idle').onLoop.add(this.animationLooped, this);
 		this.animations.getAnimation('walk').onLoop.add(this.animationLooped, this);
+		
+		this.alpha = 0;
+		game.add.tween(this).to( { alpha: 1 }, 1000, Phaser.Easing.Linear.None, true);
 	}
 
 	animationLooped(sprite, anim)
@@ -307,6 +308,7 @@ class GameState extends Phaser.State
 	preload ()
 	{
 		game.load.image('bg', 'gfx/background.png');
+		game.load.image('bgfloor', 'gfx/background_floor.png');
 		game.load.spritesheet("cow", 'gfx/cow.png', 32, 32);
 		game.load.spritesheet("corpse", 'gfx/corpse.png', 32, 32);
 		game.load.spritesheet("corpsezombie", 'gfx/corpse_zombie.png', 32, 32);
@@ -359,6 +361,11 @@ class GameState extends Phaser.State
 		//anim.play(15);
 		anim.play(20);
 	}
+		
+	spawnMaggot(obj)
+	{
+		new Maggot(obj.x, this.spawnObjY + 16);
+	}
 	
 	spawnCorpse(obj)
 	{
@@ -404,7 +411,8 @@ class GameState extends Phaser.State
 		game.physics.p2.applyDamping = true;
 		game.physics.p2.setImpactEvents(true);
 	  
-		this.bg = game.add.sprite(0, 0, 'bg')
+		this.bg = game.add.sprite(0, 0, 'bg');
+		this.bgfloor = game.add.sprite(0, 0, 'bgfloor');
 
 		this.staticCG = game.physics.p2.createCollisionGroup();
 		this.staticGroup = game.add.group();
@@ -413,6 +421,7 @@ class GameState extends Phaser.State
 		this.livingGroup = game.add.group();
 
 		this.draggedCG = game.physics.p2.createCollisionGroup();
+		this.dragContactSprites = new Set();
 		
 		// bg collision
 		this.bgCollision = game.add.sprite(0, 0);		
@@ -481,6 +490,8 @@ class GameState extends Phaser.State
 			}
 		}, this);*/
 
+		this.addDebugKeys();
+		
 		game.input.onDown.add(this.mouseClick, this);
 		game.input.addMoveCallback(this.mouseMove, this);
 		game.input.onUp.add(this.mouseRelease, this);
@@ -505,8 +516,12 @@ class GameState extends Phaser.State
 		var bodies = game.physics.p2.hitTest(mousePos, this.livingGroup.children);
 		if (bodies.length > 0)
 		{
+			// if (bodies[0] instanceof DraggableObject && !bodies[0].canBeDragged) {
+				// console.log("can't drag this one");				
+				// return;
+			// }
+
 			this.draggedBody = bodies[0];
-			
 			this.draggedBody.parent.sprite.bringToTop();
 			this.draggedBody.parent.sprite.isOnGround = false;
 			this.draggedBody.parent.sprite.animations.play('drag');
@@ -520,7 +535,8 @@ class GameState extends Phaser.State
 			this.draggedBody.parent.setCollisionGroup(this.draggedCG);
 			this.draggedBody.parent.collides([this.livingCG, this.staticCG]);
 			this.draggedBody.parent.data.shapes[0].sensor = true;
-			this.draggedBody.parent.onBeginContact.add(this.dragContact, this);
+			this.draggedBody.parent.onBeginContact.add(this.dragContactBegin, this);
+			this.draggedBody.parent.onEndContact.add(this.dragContactEnd, this);
 		}
 	}
 
@@ -528,18 +544,6 @@ class GameState extends Phaser.State
 	{
 		this.mouseBody.body.x = x / game.camera.scale.x;
 		this.mouseBody.body.y = y / game.camera.scale.y;
-
-		var mousePos = new Phaser.Point(pointer.x / game.camera.scale.x, pointer.y / game.camera.scale.y);
-
-		if (!this.draggedBody) return;
-		var draggedSprite = this.draggedBody.parent.sprite;
-		if (draggedSprite) {
-			if (this.getDragCombineFn(mousePos)) {
-				draggedSprite.animations.play('highlight');
-			} else {
-				draggedSprite.animations.play('drag');
-			}
-		}
 	}
 
 	mouseRelease(pointer)
@@ -550,28 +554,45 @@ class GameState extends Phaser.State
 			this.mouseSpring = undefined;
 			if (this.draggedBody) {
 				this.draggedBody.parent.sprite.animations.play('idle');
+				this.draggedBody.parent.setCollisionGroup(this.draggedBody.parent.cg);
+				this.draggedBody.parent.removeCollisionGroup([this.livingCG, this.staticCG], true);
+				this.draggedBody.parent.onBeginContact.removeAll();
+				this.draggedBody.parent.data.shapes[0].sensor = false;
+				this.draggedBody = undefined;
 			}
 
-			var mousePos = new Phaser.Point(pointer.x / game.camera.scale.x, pointer.y / game.camera.scale.y);
-
-			var fn = this.getDragCombineFn(mousePos);
-			if (fn) fn();
-
-			this.draggedBody.parent.setCollisionGroup(this.draggedBody.parent.cg);
-			this.draggedBody.parent.removeCollisionGroup([this.livingCG, this.staticCG], true);
-			this.draggedBody.parent.onBeginContact.removeAll();
-			this.draggedBody.parent.data.shapes[0].sensor = false;
-			this.draggedBody = undefined;
+			if (this.dragContactFn) {
+				this.dragContactFn();
+				this.dragContactSprites.clear();
+				this.dragContactFn = undefined;
+			}
 		}	
 	}
 
 
-	dragContact(body, bodyB, shapeA, shapeB, equation)
+	dragContactBegin(body, bodyB, shapeA, shapeB, equation)
 	{
 		var sprite = body.sprite;
 		var dragSprite = this.draggedBody.parent.sprite;
-		if (this.getDragCombineFn(sprite, dragSprite)) {
-			sprite.animations.play('highlight');
+		var fn = this.getDragCombineFn(sprite, dragSprite);
+		if (fn) {
+			dragSprite.animations.play('highlight');
+			this.dragContactSprites.add(sprite);
+			this.dragContactFn = fn;
+		}
+	}
+
+	dragContactEnd(body, bodyB, shapeA, shapeB)
+	{
+		if (!this.draggedBody) return;
+		var sprite = body.sprite;
+		var dragSprite = this.draggedBody.parent.sprite;
+		this.dragContactSprites.delete(sprite);
+		if (this.dragContactSprites.size == 0)
+		{
+			dragSprite.animations.play('drag');
+			this.dragContactSprite = undefined;
+			this.dragContactFn = undefined;
 		}
 	}
 
@@ -639,13 +660,48 @@ class GameState extends Phaser.State
 		var mouseX = game.input.activePointer.position.x / game.camera.scale.x;
 		var mouseY = game.input.activePointer.position.y / game.camera.scale.y;
 
-		this.setMousePointerBounds();
+		this.setMousePointerBounds();		
 	}
 
+	// Add debug spawns keys here!
+	addDebugKeys() {
+		game.input.keyboard.addKey(Phaser.Keyboard.ONE).onDown.add(function() {this.functionKey(0);}, this);
+		game.input.keyboard.addKey(Phaser.Keyboard.TWO).onDown.add(function() {this.functionKey(1);}, this);
+		game.input.keyboard.addKey(Phaser.Keyboard.THREE).onDown.add(function() {this.functionKey(2);}, this);
+		game.input.keyboard.addKey(Phaser.Keyboard.FOUR).onDown.add(function() {this.functionKey(3);}, this);
+		game.input.keyboard.addKey(Phaser.Keyboard.FIVE).onDown.add(function() {this.functionKey(4);}, this);
+	}
+	
+	// Add debug spawns here!
+	functionKey(type) {
+		switch(type){
+			case 0:
+				new Maggot(this.mouseBody.x, this.mouseBody.y);
+				break;
+			case 1:
+				new Cow(this.mouseBody.x, this.mouseBody.y);
+				break;
+			case 2:
+				new Corpse(this.mouseBody.x, this.mouseBody.y);
+				break;
+			case 3:
+				new CorpseZombie(this.mouseBody.x, this.mouseBody.y);
+				break;				
+			case 4:
+				//new Maggot(this.mouseBody.x, this.mouseBody.y);
+				break;				
+			case 5:
+				//new Maggot(this.mouseBody.x, this.mouseBody.y);
+				break;
+		}
+	}
+	
 	render()
 	{
 		//game.debug.body(this.livingGroup);
 		//game.debug.body(this.bgCollision);
+		
+		game.world.bringToTop(this.bgfloor);		
 	}
 
 

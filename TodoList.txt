@@ -1,0 +1,58 @@
+Todo list:
+
+needs fixing:
+[ ] endless birds?
+[ ] drag-collisions / detection
+[ ] gore stuff flying out of cow corpses (fixed y-position, because if you slam it down really fast they spawn too far below)
+[ ] maggot: should disappear after a while?
+
+think about:
+[ ] bat, pumpkin-human-baby, pumpkins, zombie-pumpkins, etc: what happens if too long there?
+[ ] bat, where does it stay?
+
+crafting:
+[ ] pumpkin: put seed onto fresh normal cow-corpse
+[ ] zombie-pumpkin: put seed onto zombie cow-corpse
+[ ] big, green pumpkin: feed zombie pumpkin 5 salads
+
+[ ] bat (big, green pumpkin given to bird -> maybe bird eats it and transforms into bat?)
+[ ] pumpkin cow: feed normal pumpkin to a normal cow
+[ ] pumpkin cow-corpse
+    [ ] should disappear after a while?
+[ ] vampire cow: put bat onto cow -> transforms (poof?)
+[ ] vampire cow-corpse
+[ ] salad: put seed onto pumpkin cow-corpse
+[ ] tomatoes: put seed onto vampire cow-corpse
+[ ] blood-maggot: give a maggot a tomato
+[ ] triangle-seed: give bird 3 blood-maggots
+[ ] corn: give any cow-corpse a triangle-seed
+[ ] pumpkin-human-baby: give zombie pumpkin 2 corn
+[ ] human-like cow: give pumpkin-human-baby to normal? cow
+[ ] human-like cow-corpse
+[ ] avocados: put triangle-seed onto human-like cow-corpse
+[ ] finished vegan meal (10? salads, 5? tomatoes, 1? avocados)
+
+graphics:
+[ ] triangle seed
+[ ] salad
+[ ] tomatoes
+[ ] avocados
+[ ] corn
+[ ] finished vegan meal
+
+[ ] zombie-pumpkin
+[ ] bat
+
+[ ] pumpkin cow
+[ ] pumpkin cow-corpse
+[ ] vampire cow
+[ ] vampire cow-corpse
+[ ] pumpkin-human-baby
+[ ] human-like cow
+[ ] human-like cow corpse
+
+other stuff:
+[ ] sounds / music
+[ ] label with crafted items somewhere (on the top of the screen)?
+[ ] intro sequence
+[ ] maybe: title screen (before starting game; maybe text that tells you how to control the game (touch controls/the mouse))
