@@ -182,7 +182,7 @@ class CorpseZombie extends StaticObject
 	
 	spawnTotem()
 	{		
-		new BirdTotem(this.x, this.y);
+		new BirdTotem(this.x, this.y, 'birdtotem');
 		this.destroy();
 		//game.state.getCurrentState().spawnPoof(this.x, this.y);
 	}
@@ -217,6 +217,7 @@ class BirdTotem extends StaticObject
 		this.eatTimer = 0;
 		this.seedTimer = 0;
 		this.canGet = false;
+		//this.transform = false;
 
 		if (type === 'birdtotemblood') {
 			this.eatTimer = 2000 + Math.random() * 1000;
