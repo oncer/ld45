@@ -159,7 +159,7 @@ class Seed extends DraggableObject
 {
 	constructor(x, y)
 	{
-		super(x, y, 'seed', 32, 32, 0, 0);
+		super(x, y, 'seed', 18, 18, 0, 0);
 	}
 }
 
