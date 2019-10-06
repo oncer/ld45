@@ -7,6 +7,78 @@ const FunnelMaxSalad = 3;
 const FunnelMaxTomato = 2;
 const FunnelMaxAvocado = 1;
 
+class FunnelBar extends Phaser.Sprite
+{
+	constructor(target, xoff, yoff)
+	{
+		super(game, 0, 0);
+		this.target = target;
+		this.xoff = xoff;
+		this.yoff = yoff;
+		this.bg = target.addChild(game.make.sprite(xoff, yoff, 'bar_funnel_bg'));
+		this.fg = target.addChild(game.make.sprite(xoff, yoff, 'bar_funnel_fg'));
+		this.barWidth = this.fg.width;
+		this.barHeight = this.fg.height / 2;
+		this.setVisible(false);
+		this.cropRect = new Phaser.Rectangle(0, 0, this.barWidth, this.barHeight);
+		this.targetPercent = 0;
+		this.percent = 0;
+	}
+
+	update()
+	{
+		if (this.visible) {
+			var delta = game.time.elapsed / 2000;
+			var tp = this.targetPercent > 0 ? this.targetPercent : 1;
+			if (this.percent < tp)
+			{
+				this.percent = Math.min(this.percent + delta, tp);
+			} else if (this.percent > tp)
+			{
+				this.percent = Math.max(this.percent - delta, tp);
+			}
+		}
+
+		if (this.percent < 1) {
+			this.cropRect = new Phaser.Rectangle(0, this.barHeight * (1 - this.percent), this.barWidth, this.barHeight * this.percent);
+			this.fg.y = this.yoff + this.barHeight * (1 - this.percent);
+		} else {
+			this.cropRect = new Phaser.Rectangle(0, this.barHeight, this.barWidth, this.barHeight * 2);
+			this.fg.y = this.yoff;
+		}
+		this.fg.crop(this.cropRect);
+
+		if (this.visible && this.alpha < 1) {
+			this.setAlpha(Math.min(1, this.alpha + game.time.elapsed / 1000));
+		}
+	}
+
+	setPercent(percent)
+	{
+		if (!this.visible && percent > 0) {
+			this.show();
+			this.percent = this.targetPercent;
+		}
+		this.targetPercent = percent;
+	}
+
+	setVisible(visible)
+	{
+		this.visible = this.bg.visible = this.fg.visible = visible;
+	}
+
+	setAlpha(alpha)
+	{
+		this.alpha = this.bg.alpha = this.fg.alpha = alpha;
+	}
+
+	show()
+	{
+		this.setAlpha(0);
+		this.setVisible(true);
+	}
+}
+
 class Bar extends Phaser.Sprite
 {
 	constructor(target, xoff, yoff)
@@ -155,16 +227,27 @@ class Funnel extends StaticObject
 {
 	constructor(x, y)
 	{
-		super(x, y, null, 32, 32, 0, 0);
+		super(x, y, "funnel", 40, 16, 0, -56);
+		this.animations.stop();
 		this.body.static = true;
 		//this.body.gravity = 0;
 		this.body.debug = true;
 		this.saladCount = 0;
 		this.tomatoCount = 0;
 		this.avocadoCount = 0;
-		this.saladBar = game.add.existing(new Bar(this, 32, 24));
-		this.tomatoBar = game.add.existing(new Bar(this, 32, 24 + 16));
-		this.avocadoBar = game.add.existing(new Bar(this, 32, 24 + 32));
+		this.saladBar = game.add.existing(new FunnelBar(this, 10, -20));
+		this.tomatoBar = game.add.existing(new FunnelBar(this, 10, -1));
+		this.avocadoBar = game.add.existing(new FunnelBar(this, 10, 18));
+		this.animations.getAnimation('idle').onLoop.add(this.animationLooped, this);
+		this.funnelCountdown = 0;
+	}
+
+	animationLooped(sprite, anim)
+	{
+		this.funnelCountdown--;
+		if (this.funnelCountdown == 0) {
+			this.animations.stop();
+		}
 	}
 
 	eatVegetable(obj)
@@ -179,6 +262,8 @@ class Funnel extends StaticObject
 			this.avocadoCount++;
 			this.avocadoBar.setPercent(this.avocadoCount / FunnelMaxAvocado);
 		}
+		this.animations.play('idle', 10);
+		this.funnelCountdown = 3;
 	}
 }
 
@@ -876,6 +961,8 @@ class GameState extends Phaser.State
 		game.load.image("bgfloor", "gfx/background_floor.png");
 		game.load.image("bar_bg", "gfx/bar_bg.png");
 		game.load.image("bar_fg", "gfx/bar_fg.png", 28, 4);
+		game.load.image("bar_funnel_bg", "gfx/bar_funnel_bg.png");
+		game.load.image("bar_funnel_fg", "gfx/bar_funnel_fg.png", 28, 4);
 		game.load.spritesheet("cow", "gfx/cow.png", 32, 32);
 		game.load.spritesheet("cowzombie", "gfx/cow_zombie.png", 32, 32);
 		game.load.spritesheet("cowpumpkin", "gfx/cow_pumpkin.png", 32, 32);
@@ -904,6 +991,7 @@ class GameState extends Phaser.State
 		game.load.spritesheet("corn", "gfx/corn.png", 32, 32);
 		game.load.spritesheet("baby", "gfx/baby.png", 32, 32);
 		game.load.spritesheet("avocado", "gfx/avocado.png", 32, 32);
+		game.load.spritesheet("funnel", "gfx/funnel.png", 96, 144);
 
 		
 		//game.load.spritesheet('propeller', 'gfx/propeller.png', 16, 64, 4);
@@ -1068,7 +1156,7 @@ class GameState extends Phaser.State
 		this.bgCollision.body.collides(this.livingCG);
 		this.bgCollision.body.collides(this.staticCG);
 
-		this.funnel = new Funnel(32, 32);
+		this.funnel = new Funnel(48 + 16, 240 - 72);
 		
 		// sides:
 		/*
@@ -1390,7 +1478,7 @@ class GameState extends Phaser.State
 					((dragSprite instanceof Avocado) && sprite.avocadoCount < FunnelMaxAvocado))) {
 			return function(){
 				sprite.eatVegetable(dragSprite);
-				gs.spawnPoof(dragSprite.x, dragSprite.y);
+				gs.spawnPoof(dragSprite.x, dragSprite.y - 8);
 				dragSprite.destroy();
 			}
 		}
