@@ -202,6 +202,14 @@ class Pumpkin extends DraggableObject
 	}
 }
 
+class Salad extends DraggableObject
+{
+	constructor(x, y)
+	{
+		super(x, y, 'salad', 18, 18, 0, 0);
+	}
+}
+
 class Maggot extends DraggableObject
 {
 	constructor(x, y)
@@ -343,6 +351,7 @@ class GameState extends Phaser.State
 		game.load.spritesheet('poof', 'gfx/poof.png', 32, 32);
 		game.load.spritesheet('poofblood', 'gfx/poof_blood.png', 32, 32);
 		game.load.spritesheet('birdtotem', 'gfx/bird_totem.png', 32, 32);
+		game.load.spritesheet("salad", 'gfx/salad.png', 32, 32);
 		
 		//game.load.spritesheet('propeller', 'gfx/propeller.png', 16, 64, 4);
 		game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
@@ -669,6 +678,15 @@ class GameState extends Phaser.State
 		{
 			return function(){
 				gs.spawnCowPumpkin(sprite.x, sprite.y, sprite.direction);
+				sprite.destroy();
+				dragSprite.destroy();
+				gs.spawnPoof(sprite.x, sprite.y);
+			}
+		}
+		else if ((sprite instanceof CorpsePumpkin) && (dragSprite instanceof Seed))
+		{
+			return function(){				
+				new Salad(sprite.x, sprite.y);
 				sprite.destroy();
 				dragSprite.destroy();
 				gs.spawnPoof(sprite.x, sprite.y);

@@ -5,6 +5,7 @@ needs fixing:
 [ ] gore stuff flying out of cow corpses (fixed y-position, because if you slam it down really fast they spawn too far below)
 
 think about:
+[ ] if you try to feed bird again while he's in eating animation: have to move back out and in again for it to be highlighted/possible to feed him again
 [ ] endless birds?
 [ ] maggot: should disappear after a while?
 [ ] bat, pumpkin-human-baby, pumpkins, zombie-pumpkins, etc: what happens if too long there?
@@ -20,7 +21,7 @@ crafting:
 [x] pumpkin cow-corpse
 [ ] vampire cow: put bat onto cow -> transforms (poof?)
 [ ] vampire cow-corpse
-[ ] salad: put seed onto pumpkin cow-corpse
+[x] salad: put seed onto pumpkin cow-corpse
 [ ] tomatoes: put seed onto vampire cow-corpse
 [ ] blood-maggot: give a maggot a tomato
 [ ] triangle-seed: give bird 3 blood-maggots
@@ -33,7 +34,7 @@ crafting:
 
 graphics:
 [ ] triangle seed
-[ ] salad
+[x] salad
 [ ] tomatoes
 [ ] avocados
 [ ] corn
