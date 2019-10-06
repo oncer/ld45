@@ -233,6 +233,25 @@ class CorpseVampire extends StaticObject
 	}
 }
 
+class CorpseCowhuman extends StaticObject
+{
+	constructor(x, y)
+	{
+		super(x, y, 'corpsecowhuman', 32, 16, 0, 8);
+		this.TreeAnim = this.animations.add('spawntree', [4,5,6,7,8,9,10,11,12,13], 1, false);
+		this.TreeAnim.onComplete.add(this.spawnTree, this);
+		this.animations.play('idle');
+		this.canGet = true;
+	}
+	
+	spawnTree()
+	{
+		//new Avocado(this.x, this.y+10);
+		//this.destroy();
+		this.animations.stop();
+	}
+}
+
 class BirdTotem extends StaticObject
 {
 	constructor(x, y, type)
@@ -795,7 +814,9 @@ class Cow extends DraggableObject
 
 	deadlyImpact()
 	{
-		if (this.type === 'cowvampire') {
+		if (this.type === 'cowhuman') {
+			game.state.getCurrentState().spawnCorpseCowhuman(this);
+		} else if (this.type === 'cowvampire') {
 			game.state.getCurrentState().spawnCorpseVampire(this);
 		} else if (this.type === 'cowpumpkin') {
 			game.state.getCurrentState().spawnCorpsePumpkin(this);
@@ -824,6 +845,7 @@ class GameState extends Phaser.State
 		game.load.spritesheet("corpsezombie", "gfx/corpse_zombie.png", 32, 32);
 		game.load.spritesheet("corpsepumpkin", "gfx/corpse_pumpkin.png", 32, 32);
 		game.load.spritesheet("corpsevampire", "gfx/corpse_vampire.png", 32, 32);
+		game.load.spritesheet("corpsecowhuman", "gfx/corpse_human.png", 32, 32);
 		game.load.spritesheet("maggot", "gfx/maggot.png", 32, 32);
 		game.load.spritesheet("maggotblood", "gfx/maggot_blood.png", 32, 32);
 		game.load.spritesheet("pumpkin", "gfx/pumpkin.png", 32, 32);
@@ -849,7 +871,7 @@ class GameState extends Phaser.State
 		//game.load.audio('music', 'sfx/theme.ogg');
 	}
 
-	spawnGoreParticles(x, y, minVelX, maxVelX)
+	spawnGoreParticles(x, y, minVelX, maxVelX, amount)
 	{
 		this.spawnPoofBlood(x, y);
 		
@@ -857,7 +879,7 @@ class GameState extends Phaser.State
 		this.goreEmitter.y = y;
 		this.goreEmitter.setXSpeed(minVelX, maxVelX);
 
-		this.goreEmitter.start(false, 2000, 15, 20);
+		this.goreEmitter.start(false, 2000 * amount, 15, 20 * amount);
 	}
 
 	spawnPoof(x, y)
@@ -897,7 +919,7 @@ class GameState extends Phaser.State
 	
 	spawnCorpse(obj)
 	{
-		this.spawnGoreParticles(obj.x, obj.y, -100, 100);
+		this.spawnGoreParticles(obj.x, obj.y, -100, 100, 1);
 		//new Corpse(obj.x, obj.y);
 		new Corpse(obj.x, this.spawnObjY);
 		obj.destroy();
@@ -905,22 +927,29 @@ class GameState extends Phaser.State
 
 	spawnCorpseZombie(obj)
 	{
-		this.spawnGoreParticles(obj.x, obj.y, -100, 100);
+		this.spawnGoreParticles(obj.x, obj.y, -100, 100, 1);
 		new CorpseZombie(obj.x, this.spawnObjY);
 		obj.destroy();
 	}
 	
 	spawnCorpsePumpkin(obj)
 	{
-		this.spawnGoreParticles(obj.x, obj.y, -100, 100);
+		this.spawnGoreParticles(obj.x, obj.y, -100, 100, 1);
 		new CorpsePumpkin(obj.x, this.spawnObjY);
 		obj.destroy();
 	}
 	
 	spawnCorpseVampire(obj)
 	{
-		this.spawnGoreParticles(obj.x, obj.y, -100, 100);
+		this.spawnGoreParticles(obj.x, obj.y, -100, 100, 1);
 		new CorpseVampire(obj.x, this.spawnObjY);
+		obj.destroy();
+	}
+	
+	spawnCorpseCowhuman(obj)
+	{
+		this.spawnGoreParticles(obj.x, obj.y, -100, 100, 2);
+		new CorpseCowhuman(obj.x, this.spawnObjY);
 		obj.destroy();
 	}
 	
@@ -1301,6 +1330,15 @@ class GameState extends Phaser.State
 				new Corn(sprite.x, sprite.y);
 				dragSprite.destroy();
 				sprite.destroy();
+				gs.spawnPoof(sprite.x, sprite.y);
+			}
+		}
+		else if ((sprite instanceof CorpseCowhuman) && sprite.canGet == true && (dragSprite instanceof SeedTriangle || dragSprite instanceof Seed))
+		{
+			return function(){
+				sprite.animations.play('spawntree');
+				sprite.canGet = false;
+				dragSprite.destroy();
 				gs.spawnPoof(sprite.x, sprite.y);
 			}
 		}
