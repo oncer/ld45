@@ -782,34 +782,36 @@ class GameState extends Phaser.State
 {
 	preload ()
 	{
-		game.load.image('bg', 'gfx/background.png');
-		game.load.image('bgfloor', 'gfx/background_floor.png');
-		game.load.image('bar_bg', 'gfx/bar_bg.png');
-		game.load.image('bar_fg', 'gfx/bar_fg.png');
-		game.load.spritesheet("cow", 'gfx/cow.png', 32, 32);
-		game.load.spritesheet("cowzombie", 'gfx/cow_zombie.png', 32, 32);
-		game.load.spritesheet("cowpumpkin", 'gfx/cow_pumpkin.png', 32, 32);
-		game.load.spritesheet("cowvampire", 'gfx/cow_vampire.png', 32, 32);
-		game.load.spritesheet("corpse", 'gfx/corpse.png', 32, 32);
-		game.load.spritesheet("corpsezombie", 'gfx/corpse_zombie.png', 32, 32);
-		game.load.spritesheet("corpsepumpkin", 'gfx/corpse_pumpkin.png', 32, 32);
-		game.load.spritesheet("corpsevampire", 'gfx/corpse_vampire.png', 32, 32);
-		game.load.spritesheet("maggot", 'gfx/maggot.png', 32, 32);
-		game.load.spritesheet("maggotblood", 'gfx/maggot_blood.png', 32, 32);
-		game.load.spritesheet("pumpkin", 'gfx/pumpkin.png', 32, 32);
-		game.load.spritesheet("pumpkinzombie", 'gfx/pumpkin_zombie.png', 32, 32);
-		game.load.spritesheet("pumpkinsalad", 'gfx/pumpkin_salad.png', 32, 32);
-		game.load.spritesheet("seed", 'gfx/seed.png', 32, 32);
-		game.load.spritesheet("seedtriangle", 'gfx/seed_triangle.png', 32, 32);
-		game.load.spritesheet('gore', 'gfx/gore.png', 16, 16);
-		game.load.spritesheet('poof', 'gfx/poof.png', 32, 32);
-		game.load.spritesheet('poofblood', 'gfx/poof_blood.png', 32, 32);
-		game.load.spritesheet('birdtotem', 'gfx/bird_totem.png', 32, 32);
-		game.load.spritesheet('birdtotemblood', 'gfx/bird_totem_blood.png', 32, 32);
-		game.load.spritesheet("salad", 'gfx/salad.png', 32, 32);
-		game.load.spritesheet("vampirebat", 'gfx/bat.png', 32, 32);
-		game.load.spritesheet("tomato", 'gfx/tomato.png', 32, 32);
-		game.load.spritesheet("corn", 'gfx/corn.png', 32, 32);
+		game.load.image("bg", "gfx/background.png");
+		game.load.image("bgfloor", "gfx/background_floor.png");
+		game.load.image("bar_bg", "gfx/bar_bg.png");
+		game.load.image("bar_fg", "gfx/bar_fg.png");
+		game.load.spritesheet("cow", "gfx/cow.png", 32, 32);
+		game.load.spritesheet("cowzombie", "gfx/cow_zombie.png", 32, 32);
+		game.load.spritesheet("cowpumpkin", "gfx/cow_pumpkin.png", 32, 32);
+		game.load.spritesheet("cowvampire", "gfx/cow_vampire.png", 32, 32);
+		game.load.spritesheet("corpse", "gfx/corpse.png", 32, 32);
+		game.load.spritesheet("corpsezombie", "gfx/corpse_zombie.png", 32, 32);
+		game.load.spritesheet("corpsepumpkin", "gfx/corpse_pumpkin.png", 32, 32);
+		game.load.spritesheet("corpsevampire", "gfx/corpse_vampire.png", 32, 32);
+		game.load.spritesheet("maggot", "gfx/maggot.png", 32, 32);
+		game.load.spritesheet("maggotblood", "gfx/maggot_blood.png", 32, 32);
+		game.load.spritesheet("pumpkin", "gfx/pumpkin.png", 32, 32);
+		game.load.spritesheet("pumpkinzombie", "gfx/pumpkin_zombie.png", 32, 32);
+		game.load.spritesheet("pumpkinsalad", "gfx/pumpkin_salad.png", 32, 32);
+		game.load.spritesheet("seed", "gfx/seed.png", 32, 32);
+		game.load.spritesheet("seedtriangle", "gfx/seed_triangle.png", 32, 32);
+		game.load.spritesheet("gore", "gfx/gore.png", 16, 16);
+		game.load.spritesheet("poof", "gfx/poof.png", 32, 32);
+		game.load.spritesheet("poofblood", "gfx/poof_blood.png", 32, 32);
+		game.load.spritesheet("birdtotem", "gfx/bird_totem.png", 32, 32);
+		game.load.spritesheet("birdtotemblood", "gfx/bird_totem_blood.png", 32, 32);
+		game.load.spritesheet("salad", "gfx/salad.png", 32, 32);
+		game.load.spritesheet("vampirebat", "gfx/bat.png", 32, 32);
+		game.load.spritesheet("tomato", "gfx/tomato.png", 32, 32);
+		game.load.spritesheet("corn", "gfx/corn.png", 32, 32);
+		game.load.spritesheet("baby", "gfx/baby.png", 32, 32);
+
 		
 		//game.load.spritesheet('propeller', 'gfx/propeller.png', 16, 64, 4);
 		game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
@@ -1237,6 +1239,13 @@ class GameState extends Phaser.State
 				sprite.animations.play('spawntomato'); // creates tomato obj after animation ended
 				sprite.canGet = false;
 				gs.spawnPoof(sprite.x, sprite.y);
+			}
+		}
+		else if ((sprite instanceof Pumpkin) && (dragSprite instanceof Corn)) {
+			return function(){
+				sprite.eatCorn();
+				gs.spawnPoof(sprite.x, sprite.y);
+				dragSprite.destroy();
 			}
 		}
 
