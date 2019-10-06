@@ -222,13 +222,13 @@ class BirdTotem extends StaticObject
 		if (type === 'birdtotemblood') {
 			this.eatTimer = 2000 + Math.random() * 1000;
 			this.animations.play('eat');
-			this.maxMaggots = 3;
+			this.maxMaggots = 2;
 			this.bar.setPercent(this.maggotCount / this.maxMaggots);
 		} else {
 			this.spawnAnim = this.animations.add('spawn', [10,11,12,13], 8, false);
 			this.spawnAnim.onComplete.add(this.spawnAnimEnd, this);
 			this.animations.play('spawn');
-			this.maxMaggots = 10;
+			this.maxMaggots = 4;
 		}
 	}
 	
