@@ -50,7 +50,7 @@ graphics:
 [x] vampire cow
 [x] vampire cow-corpse
 [ ] pumpkin-human-baby
-[ ] human-like cow
+[x] human-like cow
 [ ] human-like cow corpse
 
 other stuff:
