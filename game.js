@@ -332,7 +332,7 @@ class GameState extends Phaser.State
 		game.load.spritesheet("cowpumpkin", 'gfx/cow_pumpkin.png', 32, 32);
 		game.load.spritesheet("corpse", 'gfx/corpse.png', 32, 32);
 		game.load.spritesheet("corpsezombie", 'gfx/corpse_zombie.png', 32, 32);
-		//game.load.spritesheet("corpsepumpkin", 'gfx/corpse_pumpkin.png', 32, 32);
+		game.load.spritesheet("corpsepumpkin", 'gfx/corpse_pumpkin.png', 32, 32);
 		game.load.spritesheet("maggot", 'gfx/maggot.png', 32, 32);
 		game.load.spritesheet("pumpkin", 'gfx/pumpkin.png', 32, 32);
 		game.load.spritesheet("seed", 'gfx/seed.png', 32, 32);
