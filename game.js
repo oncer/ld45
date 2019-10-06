@@ -216,15 +216,15 @@ class BirdTotem extends StaticObject
 		this.animations.add('eat', [4,5,6,7], 8, true);
 		this.eatTimer = 0;
 		this.seedTimer = 0;
-		this.canGet = false;
-		//this.transform = false;
 
 		if (type === 'birdtotemblood') {
+			this.canGet = true;
 			this.eatTimer = 2000 + Math.random() * 1000;
 			this.animations.play('eat');
 			this.maxMaggots = 3;
 			this.bar.setPercent(this.maggotCount / this.maxMaggots);
 		} else {
+			this.canGet = false;
 			this.spawnAnim = this.animations.add('spawn', [10,11,12,13], 8, false);
 			this.spawnAnim.onComplete.add(this.spawnAnimEnd, this);
 			this.animations.play('spawn');
@@ -299,7 +299,6 @@ class VampireBat extends StaticObject
 		this.animations.stop();
 		this.animations.play('idle', 20);
 		this.cow = null;
-		this.angleDrag = 0.995;
 		this.state = 0; // wait and search
 		this.stateCountdown = 8000;
 		var gstate = game.state.getCurrentState();
@@ -356,9 +355,9 @@ class VampireBat extends StaticObject
 				}
 			}
 			if (Phaser.Math.distance(this.x, this.y, this.cow.x, this.cow.y) < 16) {
-				var cowVampire = new Cow(this.cow.x, this.cow.y, 'cowvampire');
-				cowVampire.setDirection(this.cow.direction);
+
 				var gstate = game.state.getCurrentState();
+				gstate.spawnCowVampire(this.cow.x, this.cow.y, this.cow.direction);
 				gstate.spawnPoofBlood(this.x, this.y);
 				if (gstate.draggedBody && gstate.draggedBody.parent.sprite === this.cow) {
 					console.log("dragged cow vampire");
@@ -798,6 +797,12 @@ class GameState extends Phaser.State
 		cow.setDirection(direction);
 	}
 
+	spawnCowVampire(x, y, direction)
+	{
+		var cow = new Cow(x, y, 'cowvampire');
+		cow.setDirection(direction);
+	}
+
 	spawnCow(x, y)
 	{
 		var cow = new Cow(x, y, 'cow');
@@ -1028,18 +1033,22 @@ class GameState extends Phaser.State
 		if ((sprite instanceof Cow) && sprite.type === 'cow' && (dragSprite instanceof Maggot))
 		{
 			return function(){
-				gs.spawnCowZombie(sprite.x, sprite.y, sprite.direction);
+				if (dragSprite.type === 'maggotblood') {
+					gs.spawnCowVampire(sprite.x, sprite.y, sprite.direction);
+				} else {
+					gs.spawnCowZombie(sprite.x, sprite.y, sprite.direction);
+				}
 				sprite.destroy();
 				dragSprite.destroy();
 				gs.spawnPoof(sprite.x, sprite.y);
 			}
-		} else if ((sprite instanceof CorpseZombie) && sprite.canGet == true && (dragSprite instanceof Maggot)) {
+		} else if ((sprite instanceof CorpseZombie) && sprite.canGet == true && (dragSprite instanceof Maggot) && dragSprite.type === 'maggot') {
 			return function(){
 				dragSprite.destroy();
 				sprite.animations.play('spawntotem'); // creates birdtotem obj after animation ended
 				sprite.canGet = false;
 			}
-		} else if ((sprite instanceof BirdTotem) && !sprite.isEating() && sprite.canGet == true && sprite.transform == false && (dragSprite instanceof Maggot)) {
+		} else if ((sprite instanceof BirdTotem) && !sprite.isEating() && sprite.canGet && (dragSprite instanceof Maggot) && (sprite.type !== 'birdtotemblood' || dragSprite.type === 'maggotblood')) {
 			return function(){
 				sprite.eatMaggot(dragSprite);
 			}
@@ -1089,7 +1098,7 @@ class GameState extends Phaser.State
 				gs.spawnPoof(sprite.x, sprite.y);
 			}
 		}
-		else if ((sprite instanceof BirdTotem) && sprite.transform == false && (dragSprite instanceof PumpkinSalad))
+		else if ((sprite instanceof BirdTotem) && (dragSprite instanceof PumpkinSalad))
 		{
 			return function(){
 				new VampireBat(sprite.x, sprite.y);
@@ -1101,7 +1110,7 @@ class GameState extends Phaser.State
 		else if ((sprite instanceof Maggot) && (dragSprite instanceof Tomato) && sprite.type === 'maggot')
 		{
 			return function(){
-				new Maggot(sprite.x, sprite.y, 'maggotblood');
+				gs.spawnMaggotBlood(sprite);
 				sprite.destroy();
 				dragSprite.destroy();
 				gs.spawnPoof(sprite.x, sprite.y);
