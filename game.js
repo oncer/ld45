@@ -149,6 +149,7 @@ class Corpse extends StaticObject
 		this.animations.play('idle');
 		this.decayed = false;
 		this.countdown = 4000;
+		this.canGet = true;
 	}
 
 	update()
@@ -201,8 +202,6 @@ class CorpsePumpkin extends StaticObject
 		super(x, y, 'corpsepumpkin', 32, 16, 0, 8);
 		this.saladAnim = this.animations.add('spawnsalad', [4,5,6,7], 1, false);
 		this.saladAnim.onComplete.add(this.spawnSalad, this);
-		//this.cornAnim = this.animations.add('spawncorn', [4,5,6,7], 1, false);
-		//this.cornAnim.onComplete.add(this.spawnCorn, this);
 		this.canGet = true;
 	}
 	
@@ -211,12 +210,6 @@ class CorpsePumpkin extends StaticObject
 		new Salad(this.x, this.y+10);
 		this.destroy();
 	}
-	
-	/*spawnCorn()
-	{
-		new Corn(this.x, this.y+8);
-		this.destroy();
-	}*/
 }
 
 class CorpseVampire extends StaticObject
@@ -518,6 +511,22 @@ class Corn extends DraggableObject
 	constructor(x, y)
 	{
 		super(x, y, 'corn', 20, 20, 0, 0);
+		this.cornAnim = this.animations.add('spawncorn', [10,11,12,13], 1, false);
+		this.cornAnim.onComplete.add(this.spawn, this);
+		this.animations.play('spawncorn');
+		
+		// immovable at the start, etc (because of spawning)
+		this.canBeDragged = false;
+		this.body.gravity = 0;
+		this.body.static = true;
+	}
+	
+	spawn()
+	{
+		this.animations.play('idle');
+		this.canBeDragged = true;
+		this.body.static = false;
+		game.state.getCurrentState().spawnPoof(this.x, this.y-8);
 	}
 }
 
@@ -1250,9 +1259,9 @@ class GameState extends Phaser.State
 		else if ((sprite instanceof Corpse || sprite instanceof CorpseZombie || sprite instanceof CorpsePumpkin || sprite instanceof CorpseVampire) && sprite.canGet == true && (dragSprite instanceof SeedTriangle))
 		{
 			return function(){
+				new Corn(sprite.x, sprite.y);
 				dragSprite.destroy();
-				sprite.animations.play('spawncorn'); // creates corn obj after animation ended
-				sprite.canGet = false;
+				sprite.destroy();
 				gs.spawnPoof(sprite.x, sprite.y);
 			}
 		}

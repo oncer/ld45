@@ -25,9 +25,9 @@ crafting:
 [x] tomatoes: put seed onto vampire cow-corpse
 [x] blood-maggot: give a maggot a tomato
 [x] triangle-seed: give bird 3 blood-maggots
-[ ] corn: give any cow-corpse a triangle-seed
-[ ] pumpkin-human-baby: give zombie pumpkin 2 corn
-[ ] human-like cow: give pumpkin-human-baby to normal? cow
+[x] corn: give any cow-corpse a triangle-seed
+[x] pumpkin-human-baby: give normal pumpkin 2 corn // OLD: give it to zombie pumpkin
+[x] human-like cow: give pumpkin-human-baby to normal? cow
 [ ] human-like cow-corpse
 [ ] avocados: put triangle-seed onto human-like cow-corpse
 [ ] finished vegan meal (10? salads, 5? tomatoes, 1? avocados)
@@ -37,7 +37,7 @@ graphics:
 [x] salad
 [x] tomatoes
 [ ] avocados
-[ ] corn
+[x] corn
 [ ] finished vegan meal
 
 [x] zombie-pumpkin
@@ -49,8 +49,8 @@ graphics:
 [x] pumpkin cow-corpse
 [x] vampire cow
 [x] vampire cow-corpse
-[ ] pumpkin-human-baby
-[ ] human-like cow
+[x] pumpkin-human-baby
+[x] human-like cow
 [ ] human-like cow corpse
 
 other stuff:
