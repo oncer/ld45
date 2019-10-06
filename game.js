@@ -168,6 +168,17 @@ class CorpseZombie extends StaticObject
 	constructor(x, y)
 	{
 		super(x, y, 'corpsezombie', 32, 16, 0, 8);
+		this.totemAnim = this.animations.add('spawntotem', [4,5,6,7], 10, false);
+		this.totemAnim.onComplete.add(this.spawnTotem, this);
+		this.animations.play('idle');
+		this.canGet = true;
+	}
+	
+	spawnTotem()
+	{		
+		new BirdTotem(this.x, this.y);
+		this.destroy();
+		//game.state.getCurrentState().spawnPoof(this.x, this.y);
 	}
 }
 
@@ -178,6 +189,7 @@ class CorpsePumpkin extends StaticObject
 		super(x, y, 'corpsepumpkin', 32, 16, 0, 8);
 		this.saladAnim = this.animations.add('spawnsalad', [4,5,6,7], 1, false);
 		this.saladAnim.onComplete.add(this.spawnSalad, this);
+		this.canGet = true;
 	}
 	
 	spawnSalad()
@@ -195,10 +207,19 @@ class BirdTotem extends StaticObject
 		this.maggotCount = 0;
 		this.setDirection(Math.random() < 0.5 ? -1 : 1);
 		this.animations.add('eat', [4,5,6,7], 8, true);
-		this.animations.play('idle');
+		this.spawnAnim = this.animations.add('spawn', [10,11,12,13], 8, false);
+		this.spawnAnim.onComplete.add(this.spawnAnimEnd, this);
+		this.animations.play('spawn');
 		this.eatTimer = 0;
 		this.seedTimer = 0;
 		this.maxMaggots = 10;
+		this.canGet = false;
+	}
+	
+	spawnAnimEnd()
+	{
+		this.animations.play('idle');
+		this.canGet = true;
 	}
 
 	isEating()
@@ -831,14 +852,13 @@ class GameState extends Phaser.State
 				dragSprite.destroy();
 				gs.spawnPoof(sprite.x, sprite.y);
 			}
-		} else if ((sprite instanceof CorpseZombie) && (dragSprite instanceof Maggot)) {
+		} else if ((sprite instanceof CorpseZombie) && sprite.canGet == true && (dragSprite instanceof Maggot)) {
 			return function(){
-				new BirdTotem(sprite.x, sprite.y);
-				sprite.destroy();
 				dragSprite.destroy();
-				gs.spawnPoof(sprite.x, sprite.y);
+				sprite.animations.play('spawntotem'); // creates birdtotem obj after animation ended
+				sprite.canGet = false;
 			}
-		} else if ((sprite instanceof BirdTotem) && !sprite.isEating() && (dragSprite instanceof Maggot)) {
+		} else if ((sprite instanceof BirdTotem) && !sprite.isEating() && sprite.canGet == true && (dragSprite instanceof Maggot)) {
 			return function(){
 				sprite.eatMaggot(dragSprite);
 			}
@@ -870,11 +890,12 @@ class GameState extends Phaser.State
 				gs.spawnPoof(sprite.x, sprite.y);
 			}
 		}
-		else if ((sprite instanceof CorpsePumpkin) && (dragSprite instanceof Seed))
+		else if ((sprite instanceof CorpsePumpkin) && sprite.canGet == true && (dragSprite instanceof Seed))
 		{
 			return function(){
 				dragSprite.destroy();
 				sprite.animations.play('spawnsalad'); // creates salad obj after animation ended
+				sprite.canGet = false;
 				gs.spawnPoof(sprite.x, sprite.y);
 			}
 		}
