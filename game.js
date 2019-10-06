@@ -388,6 +388,68 @@ class Maggot extends DraggableObject
 }
 
 ////// pumpkin zombie (copy maggot, but change a bit)
+class PumpkinZombie extends DraggableObject
+{
+	constructor(x, y)
+	{
+		super(x, y, 'pumpkinzombie', 20, 14, 0, 0);
+		this.state = 0; // wait
+		this.setDirection(1); // right
+		this.stateTimer = 1000;
+		this.animations.getAnimation('idle').onLoop.add(this.animationLooped, this);
+		this.animations.getAnimation('walk').onLoop.add(this.animationLooped, this);
+	}
+
+	animationLooped(sprite, anim)
+	{
+		if (!this.isOnGround) return;
+		switch (this.state)
+		{
+			case 0: 
+				if (this.stateTimer <= 0) {
+					this.state = 1;
+					this.stateTimer = Math.random() * 2000 + 1000;
+					if (this.x <= 100) {
+						this.setDirection(1);
+					} else if (this.x >= game.world.width - 100) {
+						this.setDirection(-1);
+					} else {
+						this.setDirection(Math.random() < 0.5 ? -1 : 1);
+					}
+					this.animations.play('walk', 8);
+				}
+				break;
+			case 1:
+				if (this.stateTimer <= 0) {
+					this.state = 0;
+					this.stateTimer = Math.random() * 4000 + 1500;
+					this.animations.play('idle');
+					this.body.velocity.x = 0;
+				}
+				break;
+		}
+	}
+
+	update()
+	{
+		super.update();
+		if (!this.isOnGround) {
+			this.state = 0;
+			return;
+		}
+		this.stateTimer -= game.time.elapsed;
+		if (this.state == 1) {
+				this.body.velocity.x = 16 * this.direction;
+		} else {
+				this.body.velocity.x = 0;
+		}
+	}
+
+	deadlyImpact()
+	{
+		// nothing happens...
+	}
+}
 
 class Cow extends DraggableObject
 {
@@ -785,6 +847,15 @@ class GameState extends Phaser.State
 		{
 			return function(){				
 				new Pumpkin(sprite.x, sprite.y);
+				sprite.destroy();
+				dragSprite.destroy();
+				gs.spawnPoof(sprite.x, sprite.y);
+			}
+		}
+		else if ((sprite instanceof CorpseZombie) && (dragSprite instanceof Seed))
+		{
+			return function(){				
+				new PumpkinZombie(sprite.x, sprite.y);
 				sprite.destroy();
 				dragSprite.destroy();
 				gs.spawnPoof(sprite.x, sprite.y);
