@@ -132,18 +132,16 @@ class DraggableObject extends Phaser.Sprite
 		this.animations.play('idle');
 		
 		this.isOnGround = true;
-		this.justSpawned = true;
+		this.justSpawned = true;		
 	}
 
 	update()
 	{
 		if (this.isOnGround)
 		{
-			//console.log("ON GROUND");
 			this.body.rotation = 0;
 		}
 		this.prevY = this.body.velocity.y;
-		//else console.log("NOT");
 		
 		if (!this.justSpawned && (this.x < -40 || this.x > game.world.width + 40)) {
 			console.log("draggable out of bounds, destroyed");
@@ -287,6 +285,7 @@ class GameState extends Phaser.State
 	preload ()
 	{
 		game.load.image('bg', 'gfx/background.png');
+		game.load.image('bgfloor', 'gfx/background_floor.png');
 		game.load.spritesheet("cow", 'gfx/cow.png', 32, 32);
 		game.load.spritesheet("corpse", 'gfx/corpse.png', 32, 32);
 		game.load.spritesheet("corpsezombie", 'gfx/corpse_zombie.png', 32, 32);
@@ -384,7 +383,8 @@ class GameState extends Phaser.State
 		game.physics.p2.applyDamping = true;
 		game.physics.p2.setImpactEvents(true);
 	  
-		this.bg = game.add.sprite(0, 0, 'bg')
+		this.bg = game.add.sprite(0, 0, 'bg');
+		this.bgfloor = game.add.sprite(0, 0, 'bgfloor');
 
 		this.staticCG = game.physics.p2.createCollisionGroup();
 		this.staticGroup = game.add.group();
@@ -483,8 +483,12 @@ class GameState extends Phaser.State
 		var bodies = game.physics.p2.hitTest(mousePos, this.livingGroup.children);
 		if (bodies.length > 0)
 		{
+			// if (bodies[0] instanceof DraggableObject && !bodies[0].canBeDragged) {
+				// console.log("can't drag this one");				
+				// return;
+			// }
+
 			this.draggedBody = bodies[0];
-			
 			this.draggedBody.parent.sprite.bringToTop();
 			this.draggedBody.parent.sprite.isOnGround = false;
 			this.draggedBody.parent.sprite.animations.play('drag');
@@ -602,7 +606,7 @@ class GameState extends Phaser.State
 			}
 			);
 			
-			if (cowcounter<3) {
+			if (cowcounter < 3) {
 				if (Math.random() < 0.5) {
 					this.spawnCow(-40, 240 - 16);
 				} else {
@@ -623,6 +627,8 @@ class GameState extends Phaser.State
 	{
 		//game.debug.body(this.livingGroup);
 		//game.debug.body(this.bgCollision);
+		
+		game.world.bringToTop(this.bgfloor);		
 	}
 
 
