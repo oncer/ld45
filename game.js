@@ -215,11 +215,14 @@ class BirdTotem extends StaticObject
 		this.animations.add('eat', [4,5,6,7], 8, true);
 		this.spawnAnim = this.animations.add('spawn', [10,11,12,13], 8, false);
 		this.spawnAnim.onComplete.add(this.spawnAnimEnd, this);
+		//this.transformAnim = this.animations.add('transform', [10,11,12,13], 8, false);
+		//this.transformAnim.onComplete.add(this.spawnAnimEnd, this);
 		this.animations.play('spawn');
 		this.eatTimer = 0;
 		this.seedTimer = 0;
 		this.maxMaggots = 10;
 		this.canGet = false;
+		this.transform = false;
 	}
 	
 	spawnAnimEnd()
@@ -994,7 +997,7 @@ class GameState extends Phaser.State
 				sprite.animations.play('spawntotem'); // creates birdtotem obj after animation ended
 				sprite.canGet = false;
 			}
-		} else if ((sprite instanceof BirdTotem) && !sprite.isEating() && sprite.canGet == true && (dragSprite instanceof Maggot)) {
+		} else if ((sprite instanceof BirdTotem) && !sprite.isEating() && sprite.canGet == true && sprite.transform == false && (dragSprite instanceof Maggot)) {
 			return function(){
 				sprite.eatMaggot(dragSprite);
 			}
@@ -1040,6 +1043,15 @@ class GameState extends Phaser.State
 			return function(){
 				// TODO: EATING BAR
 				sprite.eatSalad();
+				dragSprite.destroy();
+				gs.spawnPoof(sprite.x, sprite.y);
+			}
+		}
+		else if ((sprite instanceof BirdTotem) && sprite.transform == false && (dragSprite instanceof PumpkinSalad))
+		{
+			return function(){
+				new VampireBat(sprite.x, sprite.y);
+				sprite.destroy();
 				dragSprite.destroy();
 				gs.spawnPoof(sprite.x, sprite.y);
 			}
