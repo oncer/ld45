@@ -36,7 +36,7 @@ graphics:
 [x] triangle seed
 [x] salad
 [x] tomatoes
-[ ] avocados
+[x] avocados
 [x] corn
 [ ] finished vegan meal
 
