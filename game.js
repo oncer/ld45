@@ -410,6 +410,7 @@ class DraggableObject extends InteractiveObject
 		
 		this.isOnGround = true;
 		this.justSpawned = true;		
+		this.canBeDragged = true;
 	}
 
 	update()
@@ -914,17 +915,12 @@ class GameState extends Phaser.State
 		var bodies = game.physics.p2.hitTest(mousePos, this.livingGroup.children);
 		this.draggedBody = undefined;
 		for (let body of bodies) {
-			if (body.parent.sprite instanceof DraggableObject) {
+			if (body.parent.sprite instanceof DraggableObject && body.parent.sprite.canBeDragged) {
 				this.draggedBody = body;
 			}
 		}
 		if (this.draggedBody)
 		{
-			// if (bodies[0] instanceof DraggableObject && !bodies[0].canBeDragged) {
-				// console.log("can't drag this one");				
-				// return;
-			// }
-
 			this.draggedBody.parent.sprite.bringToTop();
 			this.draggedBody.parent.sprite.isOnGround = false;
 			this.draggedBody.parent.sprite.animations.play('drag');
@@ -1143,6 +1139,7 @@ class GameState extends Phaser.State
 		game.input.keyboard.addKey(Phaser.Keyboard.FOUR).onDown.add(function() {this.functionKey(3);}, this);
 		game.input.keyboard.addKey(Phaser.Keyboard.FIVE).onDown.add(function() {this.functionKey(4);}, this);
 		game.input.keyboard.addKey(Phaser.Keyboard.SIX).onDown.add(function() {this.functionKey(5);}, this);
+		game.input.keyboard.addKey(Phaser.Keyboard.SEVEN).onDown.add(function() {this.functionKey(6);}, this);
 	}
 	
 	// Add debug spawns here!
@@ -1166,8 +1163,8 @@ class GameState extends Phaser.State
 			case 5:
 				new Seed(this.mouseBody.x, this.mouseBody.y);
 				break;
-			case 6:
-				//new Maggot(this.mouseBody.x, this.mouseBody.y);
+			case 7:
+				new Tomato(this.mouseBody.x, this.mouseBody.y);
 				break;
 		}
 	}
