@@ -3,6 +3,9 @@ const PumpkinZombieMaxSalads = 3;
 const CowMaxMaggots = 2;
 const BirdMaxMaggots = 3;
 const BirdMaxMaggotsBlood = 2;
+const FunnelMaxSalad = 3;
+const FunnelMaxTomato = 2;
+const FunnelMaxAvocado = 1;
 
 class Bar extends Phaser.Sprite
 {
@@ -14,7 +17,7 @@ class Bar extends Phaser.Sprite
 		this.yoff = yoff;
 		this.bg = target.addChild(game.make.sprite(target.width/2 + xoff, yoff - 2, 'bar_bg'));
 		this.fg = target.addChild(game.make.sprite(target.width/2 + xoff + 2, yoff, 'bar_fg'));
-		this.barWidth = this.fg.width;
+		this.barWidth = this.fg.width / 2;
 		this.barHeight = this.fg.height;
 		this.setVisible(false);
 		this.cropRect = new Phaser.Rectangle(0, 0, this.barWidth, this.barHeight);
@@ -50,7 +53,11 @@ class Bar extends Phaser.Sprite
 			}
 		}
 
-		this.cropRect = new Phaser.Rectangle(0, 0, this.barWidth * this.percent, this.barHeight);
+		if (this.percent < 1) {
+			this.cropRect = new Phaser.Rectangle(0, 0, this.barWidth * this.percent, this.barHeight);
+		} else {
+			this.cropRect = new Phaser.Rectangle(this.barWidth, 0, this.barWidth * this.percent, this.barHeight);
+		}
 		if (!this.fg._frame) {
 			this.destroy();
 			return;
@@ -137,8 +144,41 @@ class StaticObject extends InteractiveObject
 			gstate.staticGroup.add(this);
 		}
 		this.body.collides([gstate.bgCG, gstate.draggedCG]);
-		this.animations.add('idle', [0,1,2,3], 4, true);
-		this.animations.play('idle');
+		if (this._frame) {
+			this.animations.add('idle', [0,1,2,3], 4, true);
+			this.animations.play('idle');
+		}
+	}
+}
+
+class Funnel extends StaticObject
+{
+	constructor(x, y)
+	{
+		super(x, y, null, 32, 32, 0, 0);
+		this.body.static = true;
+		//this.body.gravity = 0;
+		this.body.debug = true;
+		this.saladCount = 0;
+		this.tomatoCount = 0;
+		this.avocadoCount = 0;
+		this.saladBar = game.add.existing(new Bar(this, 32, 24));
+		this.tomatoBar = game.add.existing(new Bar(this, 32, 24 + 16));
+		this.avocadoBar = game.add.existing(new Bar(this, 32, 24 + 32));
+	}
+
+	eatVegetable(obj)
+	{
+		if (obj instanceof Salad) {
+			this.saladCount++;
+			this.saladBar.setPercent(this.saladCount / FunnelMaxSalad);
+		} else if (obj instanceof Tomato) {
+			this.tomatoCount++;
+			this.tomatoBar.setPercent(this.tomatoCount / FunnelMaxTomato);
+		} else if (obj instanceof Avocado) {
+			this.avocadoCount++;
+			this.avocadoBar.setPercent(this.avocadoCount / FunnelMaxAvocado);
+		}
 	}
 }
 
@@ -835,7 +875,7 @@ class GameState extends Phaser.State
 		game.load.image("bg", "gfx/background.png");
 		game.load.image("bgfloor", "gfx/background_floor.png");
 		game.load.image("bar_bg", "gfx/bar_bg.png");
-		game.load.image("bar_fg", "gfx/bar_fg.png");
+		game.load.image("bar_fg", "gfx/bar_fg.png", 28, 4);
 		game.load.spritesheet("cow", "gfx/cow.png", 32, 32);
 		game.load.spritesheet("cowzombie", "gfx/cow_zombie.png", 32, 32);
 		game.load.spritesheet("cowpumpkin", "gfx/cow_pumpkin.png", 32, 32);
@@ -1027,6 +1067,8 @@ class GameState extends Phaser.State
 		this.bgCollision.body.setCollisionGroup(this.bgCG);
 		this.bgCollision.body.collides(this.livingCG);
 		this.bgCollision.body.collides(this.staticCG);
+
+		this.funnel = new Funnel(32, 32);
 		
 		// sides:
 		/*
@@ -1340,6 +1382,16 @@ class GameState extends Phaser.State
 				sprite.canGet = false;
 				dragSprite.destroy();
 				gs.spawnPoof(sprite.x, sprite.y);
+			}
+		}
+		else if ((sprite instanceof Funnel) &&
+				(((dragSprite instanceof Salad) && sprite.saladCount < FunnelMaxSalad) || 
+					((dragSprite instanceof Tomato) && sprite.tomatoCount < FunnelMaxTomato) || 
+					((dragSprite instanceof Avocado) && sprite.avocadoCount < FunnelMaxAvocado))) {
+			return function(){
+				sprite.eatVegetable(dragSprite);
+				gs.spawnPoof(dragSprite.x, dragSprite.y);
+				dragSprite.destroy();
 			}
 		}
 
