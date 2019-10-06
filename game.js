@@ -790,6 +790,7 @@ class GameState extends Phaser.State
 		game.load.spritesheet("cowzombie", "gfx/cow_zombie.png", 32, 32);
 		game.load.spritesheet("cowpumpkin", "gfx/cow_pumpkin.png", 32, 32);
 		game.load.spritesheet("cowvampire", "gfx/cow_vampire.png", 32, 32);
+		game.load.spritesheet("cowhuman", "gfx/cow_human.png", 32, 32);
 		game.load.spritesheet("corpse", "gfx/corpse.png", 32, 32);
 		game.load.spritesheet("corpsezombie", "gfx/corpse_zombie.png", 32, 32);
 		game.load.spritesheet("corpsepumpkin", "gfx/corpse_pumpkin.png", 32, 32);
@@ -911,6 +912,12 @@ class GameState extends Phaser.State
 		cow.setDirection(direction);
 	}
 
+	spawnCowHuman(x, y, direction)
+	{
+		var cow = new Cow(x, y, 'cowhuman');
+		cow.setDirection(direction);
+	}
+
 	spawnCow(x, y)
 	{
 		var cow = new Cow(x, y, 'cow');
@@ -983,9 +990,6 @@ class GameState extends Phaser.State
 		game.camera.scale.setTo(2);
 
 		var style = { font: "14px Consolas", fill: "#ff004c", align: "center" };
-		this.debugText = game.add.text(256, 240, "debug text", style);
-		this.debugText.anchor.set(0.5);
-		this.debugText.exists = false;
 		
 		// gore emitter
 		this.goreEmitter = game.add.emitter(0, 0, 100);
@@ -1019,6 +1023,10 @@ class GameState extends Phaser.State
 		game.input.onDown.add(this.mouseClick, this);
 		game.input.addMoveCallback(this.mouseMove, this);
 		game.input.onUp.add(this.mouseRelease, this);
+
+		this.debugText = game.add.text(256, 240, "debug text", style);
+		this.debugText.anchor.set(0.5);
+		this.debugText.exists = false;
 
 		game.camera.flash('#000000');
 	}
@@ -1087,9 +1095,9 @@ class GameState extends Phaser.State
 
 			if (this.dragContactFn) {
 				this.dragContactFn();
-				this.dragContactSprites.clear();
 				this.dragContactFn = undefined;
 			}
+			this.dragContactSprites.clear();
 		}	
 	}
 
@@ -1186,6 +1194,15 @@ class GameState extends Phaser.State
 				sprite.destroy();
 				dragSprite.destroy();
 				gs.spawnPoof(sprite.x, sprite.y);
+			}
+		}
+		else if ((sprite instanceof Cow) && sprite.type === 'cow' && (dragSprite instanceof Baby))
+		{
+			return function(){
+				gs.spawnCowHuman(sprite.x, sprite.y, sprite.direction);
+				gs.spawnPoof(sprite.x, sprite.y);
+				sprite.destroy();
+				dragSprite.destroy();
 			}
 		}
 		else if ((sprite instanceof CorpsePumpkin) && sprite.canGet == true && (dragSprite instanceof Seed))
@@ -1290,6 +1307,8 @@ class GameState extends Phaser.State
 		var mouseX = game.input.activePointer.position.x / game.camera.scale.x;
 		var mouseY = game.input.activePointer.position.y / game.camera.scale.y;
 
+		this.debugText.text = "";
+		this.debugText.text += "contact sprites: " + this.dragContactSprites.size;
 		this.setMousePointerBounds();		
 	}
 
@@ -1337,6 +1356,7 @@ class GameState extends Phaser.State
 				new Corn(this.mouseBody.x, this.mouseBody.y);
 				break;
 		}
+
 	}
 	
 	render()
@@ -1345,6 +1365,10 @@ class GameState extends Phaser.State
 		//game.debug.body(this.bgCollision);
 		
 		game.world.bringToTop(this.bgfloor);		
+
+		if (this.debugText.exists) {
+			this.debugText.bringToTop();
+		}
 	}
 
 
