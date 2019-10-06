@@ -194,7 +194,8 @@ class Maggot extends DraggableObject
 		this.animations.getAnimation('idle').onLoop.add(this.animationLooped, this);
 		this.animations.getAnimation('walk').onLoop.add(this.animationLooped, this);
 		
-		game.add.tween(this).to( { alpha: 1 }, 2000, Phaser.Easing.Linear.None, true, 0, 1000, true);
+		this.alpha = 0;
+		game.add.tween(this).to( { alpha: 1 }, 1000, Phaser.Easing.Linear.None, true);
 	}
 
 	animationLooped(sprite, anim)
@@ -654,7 +655,7 @@ class GameState extends Phaser.State
 	}
 	
 	// Add debug spawns here!
-	functionKey(type) {		
+	functionKey(type) {
 		switch(type){
 			case 0:
 				new Maggot(this.mouseBody.x, this.mouseBody.y);
