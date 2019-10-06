@@ -1,17 +1,17 @@
 Todo list:
 
 needs fixing:
-[ ] endless birds?
 [ ] drag-collisions / detection
 [ ] gore stuff flying out of cow corpses (fixed y-position, because if you slam it down really fast they spawn too far below)
 [ ] maggot: should disappear after a while?
 
 think about:
+[ ] endless birds?
 [ ] bat, pumpkin-human-baby, pumpkins, zombie-pumpkins, etc: what happens if too long there?
 [ ] bat, where does it stay?
 
 crafting:
-[ ] pumpkin: put seed onto fresh normal cow-corpse
+[x] pumpkin: put seed onto fresh normal cow-corpse
 [ ] zombie-pumpkin: put seed onto zombie cow-corpse
 [ ] big, green pumpkin: feed zombie pumpkin 5 salads
 
@@ -44,7 +44,7 @@ graphics:
 [ ] bat
 
 [ ] zombie cow-gore? (normal, red gore flies away, but the corpse is green)
-[ ] pumpkin cow
+[x] pumpkin cow
 [ ] pumpkin cow-corpse
 [ ] vampire cow
 [ ] vampire cow-corpse
