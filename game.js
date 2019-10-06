@@ -258,10 +258,10 @@ class Maggot extends DraggableObject
 
 class Cow extends DraggableObject
 {
-	constructor(x, y, zombie)
+	constructor(x, y, type)
 	{
-		super(x, y, zombie ? 'cowzombie' : 'cow', 28, 20, 0, 0);
-		this.zombie = zombie;
+		super(x, y, type, 28, 20, 0, 0);
+		this.type = type;
 		this.state = 0; // wait
 		this.direction = 1; // right
 		this.stateTimer = 1000;	
@@ -303,7 +303,7 @@ class Cow extends DraggableObject
 
 	deadlyImpact()
 	{
-		if (this.zombie) {
+		if (this.type === 'cowzombie') {
 			game.state.getCurrentState().spawnCorpseZombie(this);
 		} else {
 			game.state.getCurrentState().spawnCorpse(this);
@@ -392,13 +392,13 @@ class GameState extends Phaser.State
 
 	spawnCowZombie(x, y, direction)
 	{
-		var cow = new Cow(x, y, true);
+		var cow = new Cow(x, y, 'cowzombie');
 		cow.direction = direction;
 	}
 
 	spawnCow(x, y)
 	{
-		new Cow(x, y, false);
+		new Cow(x, y, 'cow');
 	}
 
 	create ()
@@ -608,7 +608,7 @@ class GameState extends Phaser.State
 	{
 		// check if we can combine
 		var gs = this; // closure
-		if ((sprite instanceof Cow) && !sprite.zombie && (dragSprite instanceof Maggot))
+		if ((sprite instanceof Cow) && sprite.type === 'cow' && (dragSprite instanceof Maggot))
 		{
 			return function(){
 				gs.spawnCowZombie(sprite.x, sprite.y, sprite.direction);
@@ -696,7 +696,7 @@ class GameState extends Phaser.State
 				new Maggot(this.mouseBody.x, this.mouseBody.y);
 				break;
 			case 1:
-				new Cow(this.mouseBody.x, this.mouseBody.y);
+				new Cow(this.mouseBody.x, this.mouseBody.y, 'cow');
 				break;
 			case 2:
 				new Corpse(this.mouseBody.x, this.mouseBody.y);
