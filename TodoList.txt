@@ -1,14 +1,15 @@
 Todo list:
 
 needs fixing:
-[ ] drag-collisions / detection
+[?] drag-collisions / detection
 [ ] gore stuff flying out of cow corpses (fixed y-position, because if you slam it down really fast they spawn too far below)
-[ ] maggot: should disappear after a while?
 
 think about:
+[ ] if you try to feed bird again while he's in eating animation: have to move back out and in again for it to be highlighted/possible to feed him again
 [ ] endless birds?
+[ ] maggot: should disappear after a while?
 [ ] bat, pumpkin-human-baby, pumpkins, zombie-pumpkins, etc: what happens if too long there?
-[ ] bat, where does it stay?
+[ ] bat: where does it stay?
 
 crafting:
 [x] pumpkin: put seed onto fresh normal cow-corpse
@@ -16,12 +17,11 @@ crafting:
 [ ] big, green pumpkin: feed zombie pumpkin 5 salads
 
 [ ] bat (big, green pumpkin given to bird -> maybe bird eats it and transforms into bat?)
-[ ] pumpkin cow: feed normal pumpkin to a normal cow
-[ ] pumpkin cow-corpse
-    [ ] should disappear after a while?
+[x] pumpkin cow: feed normal pumpkin to a normal cow
+[x] pumpkin cow-corpse
 [ ] vampire cow: put bat onto cow -> transforms (poof?)
 [ ] vampire cow-corpse
-[ ] salad: put seed onto pumpkin cow-corpse
+[x] salad: put seed onto pumpkin cow-corpse
 [ ] tomatoes: put seed onto vampire cow-corpse
 [ ] blood-maggot: give a maggot a tomato
 [ ] triangle-seed: give bird 3 blood-maggots
@@ -34,7 +34,7 @@ crafting:
 
 graphics:
 [ ] triangle seed
-[ ] salad
+[x] salad
 [ ] tomatoes
 [ ] avocados
 [ ] corn
@@ -43,9 +43,10 @@ graphics:
 [ ] zombie-pumpkin
 [ ] bat
 
-[ ] zombie cow-gore? (normal, red gore flies away, but the corpse is green)
+[ ] maybe: zombie cow-gore? (red gore flies away, but the corpse is green)
+[ ] maybe: pumpkin cow-gore? (red gore flies away, but the corpse is orange)
 [x] pumpkin cow
-[ ] pumpkin cow-corpse
+[x] pumpkin cow-corpse
 [ ] vampire cow
 [ ] vampire cow-corpse
 [ ] pumpkin-human-baby

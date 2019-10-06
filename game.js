@@ -171,6 +171,22 @@ class CorpseZombie extends StaticObject
 	}
 }
 
+class CorpsePumpkin extends StaticObject
+{
+	constructor(x, y)
+	{
+		super(x, y, 'corpsepumpkin', 32, 16, 0, 8);
+		this.saladAnim = this.animations.add('spawnsalad', [4,5,6,7], 1, false);
+		this.saladAnim.onComplete.add(this.spawnSalad, this);
+	}
+	
+	spawnSalad()
+	{
+		new Salad(this.x, this.y+10);
+		this.destroy();
+	}
+}
+
 class BirdTotem extends StaticObject
 {
 	constructor(x, y)
@@ -302,6 +318,14 @@ class Pumpkin extends DraggableObject
 	}
 }
 
+class Salad extends DraggableObject
+{
+	constructor(x, y)
+	{
+		super(x, y, 'salad', 18, 18, 0, 0);
+	}
+}
+
 class Maggot extends DraggableObject
 {
 	constructor(x, y)
@@ -363,6 +387,8 @@ class Maggot extends DraggableObject
 	}
 }
 
+////// pumpkin zombie (copy maggot, but change a bit)
+
 class Cow extends DraggableObject
 {
 	constructor(x, y, type)
@@ -409,7 +435,9 @@ class Cow extends DraggableObject
 
 	deadlyImpact()
 	{
-		if (this.type === 'cowzombie') {
+		if (this.type === 'cowpumpkin') {
+			game.state.getCurrentState().spawnCorpsePumpkin(this);
+		} else if (this.type === 'cowzombie') {
 			game.state.getCurrentState().spawnCorpseZombie(this);
 		} else {
 			game.state.getCurrentState().spawnCorpse(this);
@@ -426,16 +454,20 @@ class GameState extends Phaser.State
 		game.load.image('bar_bg', 'gfx/bar_bg.png');
 		game.load.image('bar_fg', 'gfx/bar_fg.png');
 		game.load.spritesheet("cow", 'gfx/cow.png', 32, 32);
+		game.load.spritesheet("cowzombie", 'gfx/cow_zombie.png', 32, 32);
+		game.load.spritesheet("cowpumpkin", 'gfx/cow_pumpkin.png', 32, 32);
 		game.load.spritesheet("corpse", 'gfx/corpse.png', 32, 32);
 		game.load.spritesheet("corpsezombie", 'gfx/corpse_zombie.png', 32, 32);
-		game.load.spritesheet("cowzombie", 'gfx/cow_zombie.png', 32, 32);
+		game.load.spritesheet("corpsepumpkin", 'gfx/corpse_pumpkin.png', 32, 32);
 		game.load.spritesheet("maggot", 'gfx/maggot.png', 32, 32);
 		game.load.spritesheet("pumpkin", 'gfx/pumpkin.png', 32, 32);
+		game.load.spritesheet("pumpkinzombie", 'gfx/pumpkin_zombie.png', 32, 32);
 		game.load.spritesheet("seed", 'gfx/seed.png', 32, 32);
 		game.load.spritesheet('gore', 'gfx/gore.png', 16, 16);
 		game.load.spritesheet('poof', 'gfx/poof.png', 32, 32);
 		game.load.spritesheet('poofblood', 'gfx/poof_blood.png', 32, 32);
 		game.load.spritesheet('birdtotem', 'gfx/bird_totem.png', 32, 32);
+		game.load.spritesheet("salad", 'gfx/salad.png', 32, 32);
 		
 		//game.load.spritesheet('propeller', 'gfx/propeller.png', 16, 64, 4);
 		game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
@@ -496,6 +528,19 @@ class GameState extends Phaser.State
 		this.spawnGoreParticles(obj.x, obj.y, -100, 100);
 		new CorpseZombie(obj.x, this.spawnObjY);
 		obj.destroy();
+	}
+	
+	spawnCorpsePumpkin(obj)
+	{
+		this.spawnGoreParticles(obj.x, obj.y, -100, 100);
+		new CorpsePumpkin(obj.x, this.spawnObjY);
+		obj.destroy();
+	}
+	
+	spawnCowPumpkin(x, y, direction)
+	{
+		var cow = new Cow(x, y, 'cowpumpkin');
+		cow.direction = direction;
 	}
 
 	spawnCowZombie(x, y, direction)
@@ -745,6 +790,23 @@ class GameState extends Phaser.State
 				gs.spawnPoof(sprite.x, sprite.y);
 			}
 		}
+		else if ((sprite instanceof Cow) && sprite.type === 'cow' && (dragSprite instanceof Pumpkin))
+		{
+			return function(){
+				gs.spawnCowPumpkin(sprite.x, sprite.y, sprite.direction);
+				sprite.destroy();
+				dragSprite.destroy();
+				gs.spawnPoof(sprite.x, sprite.y);
+			}
+		}
+		else if ((sprite instanceof CorpsePumpkin) && (dragSprite instanceof Seed))
+		{
+			return function(){
+				dragSprite.destroy();
+				sprite.animations.play('spawnsalad'); // creates salad obj after animation ended
+				gs.spawnPoof(sprite.x, sprite.y);
+			}
+		}
 
 		return false;
 	}
@@ -795,6 +857,7 @@ class GameState extends Phaser.State
 		game.input.keyboard.addKey(Phaser.Keyboard.THREE).onDown.add(function() {this.functionKey(2);}, this);
 		game.input.keyboard.addKey(Phaser.Keyboard.FOUR).onDown.add(function() {this.functionKey(3);}, this);
 		game.input.keyboard.addKey(Phaser.Keyboard.FIVE).onDown.add(function() {this.functionKey(4);}, this);
+		game.input.keyboard.addKey(Phaser.Keyboard.SIX).onDown.add(function() {this.functionKey(5);}, this);
 	}
 	
 	// Add debug spawns here!
@@ -813,9 +876,12 @@ class GameState extends Phaser.State
 				new CorpseZombie(this.mouseBody.x, this.mouseBody.y);
 				break;				
 			case 4:
-				//new Maggot(this.mouseBody.x, this.mouseBody.y);
+				new CorpsePumpkin(this.mouseBody.x, this.mouseBody.y);
 				break;				
 			case 5:
+				new Seed(this.mouseBody.x, this.mouseBody.y);
+				break;
+			case 6:
 				//new Maggot(this.mouseBody.x, this.mouseBody.y);
 				break;
 		}
