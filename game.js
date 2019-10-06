@@ -1,5 +1,97 @@
+class Bar extends Phaser.Sprite
+{
+	constructor(target)
+	{
+		super(game, 0, 0);
+		this.target = target;
+		this.bg = target.addChild(game.make.sprite(target.width/2 - 32, -24, 'bar_bg'));
+		this.fg = target.addChild(game.make.sprite(target.width/2 - 32 + 2, -22, 'bar_fg'));
+		this.barWidth = this.fg.width;
+		this.barHeight = this.fg.height;
+		this.setVisible(false);
+		this.cropRect = new Phaser.Rectangle(0, 0, this.barWidth, this.barHeight);
+		this.hideTime = 1000;
+		this.hideCountdown = 0;
+		this.targetPercent = 0;
+		this.percent = 0;
+	}
 
-class StaticObject extends Phaser.Sprite
+	setDirection(dir)
+	{
+		this.fg.scale.x = dir;
+		if (dir < 0) {
+			this.fg.x = this.target.width / 2 + 30;
+		} else {
+			this.fg.x = this.target.width / 2 - 30;
+		}
+	}
+
+	update()
+	{
+		this.fg.scale.x = this.target.scale.x;
+
+		if (this.hideCountdown <= 0 && this.alpha == 1) {
+			var delta = game.time.elapsed / 2000;
+			if (this.percent < this.targetPercent)
+			{
+				this.percent = Math.min(this.percent + delta, this.targetPercent);
+			} else if (this.percent > this.targetPercent)
+			{
+				this.percent = Math.max(this.percent - delta, this.targetPercent);
+			}
+		}
+
+		this.cropRect = new Phaser.Rectangle(0, 0, this.barWidth * this.percent, this.barHeight);
+		if (!this.fg._frame) {
+			this.destroy();
+			return;
+		}
+		this.fg.crop(this.cropRect);
+
+		if (this.hideCountdown > 0) {
+			this.hideCountdown -= game.time.elapsed;
+			if (this.hideCountdown <= 0) {
+				this.setVisible(false);
+			} else {
+				this.setAlpha(this.hideCountdown / this.hideTime);
+			}
+		} else if (this.visible && this.alpha < 1) {
+			this.setAlpha(Math.min(1, this.alpha + game.time.elapsed / 1000));
+		}
+
+	}
+
+	setPercent(percent)
+	{
+		this.targetPercent = percent;
+		if (this.targetPercent > 0) {
+			this.show();
+		}
+	}
+
+	setVisible(visible)
+	{
+		this.visible = this.bg.visible = this.fg.visible = visible;
+	}
+
+	setAlpha(alpha)
+	{
+		this.alpha = this.bg.alpha = this.fg.alpha = alpha;
+	}
+
+	show()
+	{
+		this.setAlpha(0);
+		this.setVisible(true);
+	}
+
+	hide()
+	{
+		this.hideCountdown = this.hideTime;
+	}
+}
+
+class InteractiveObject extends Phaser.Sprite
 {
 	constructor(x, y, sprite, cWidth, cHeight, cX, cY)
 	{
@@ -7,6 +99,24 @@ class StaticObject extends Phaser.Sprite
 		game.physics.p2.enable(this);
 		this.body.clearShapes();
 		this.body.addRectangle(cWidth, cHeight, cX, cY);
+
+		this.bar = game.add.existing(new Bar(this));
+		this.setDirection(1);
+	}
+
+	setDirection(dir)
+	{
+		this.direction = dir;
+		this.scale.x = dir;
+		this.bar.setDirection(dir);
+	}
+}
+
+class StaticObject extends InteractiveObject
+{
+	constructor(x, y, sprite, cWidth, cHeight, cX, cY)
+	{
+		super(x, y, sprite, cWidth, cHeight, cX, cY)
 		var gstate = game.state.getCurrentState();
 		this.body.cg = gstate.staticCG;
 		this.body.setCollisionGroup(this.body.cg);
@@ -66,6 +176,14 @@ class CorpsePumpkin extends StaticObject
 	constructor(x, y)
 	{
 		super(x, y, 'corpsepumpkin', 32, 16, 0, 8);
+		this.saladAnim = this.animations.add('spawnsalad', [4,5,6,7], 1, false);
+		this.saladAnim.onComplete.add(this.spawnSalad, this);
+	}
+	
+	spawnSalad()
+	{
+		new Salad(this.x, this.y+10);
+		this.destroy();
 	}
 }
 
@@ -75,11 +193,12 @@ class BirdTotem extends StaticObject
 	{
 		super(x, y, 'birdtotem', 32, 32, 0, 0);
 		this.maggotCount = 0;
-		this.direction = Math.random() < 0.5 ? -1 : 1;
+		this.setDirection(Math.random() < 0.5 ? -1 : 1);
 		this.animations.add('eat', [4,5,6,7], 8, true);
 		this.animations.play('idle');
 		this.eatTimer = 0;
 		this.seedTimer = 0;
+		this.maxMaggots = 10;
 	}
 
 	isEating()
@@ -89,17 +208,17 @@ class BirdTotem extends StaticObject
 
 	update()
 	{
-		this.scale.x = this.direction;
-
 		if (this.eatTimer > 0) {
 			this.eatTimer -= game.time.elapsed;
 			if (this.eatTimer <= 0) {
 				this.maggotCount++;
+				this.bar.setPercent(this.maggotCount / this.maxMaggots);
 				this.animations.play('idle');
 
-				if (this.maggotCount >= 3) {
+				if (this.maggotCount >= this.maxMaggots) {
 					this.seedTimer = 2000;
 					this.maggotCount = 0;
+					this.bar.setPercent(0);
 				}
 			}
 		}
@@ -123,14 +242,11 @@ class BirdTotem extends StaticObject
 	}
 }
 
-class DraggableObject extends Phaser.Sprite
+class DraggableObject extends InteractiveObject
 {
 	constructor(x, y, sprite, cWidth, cHeight, cX, cY)
 	{
-		super(game, x, y, sprite);
-		game.physics.p2.enable(this);
-		this.body.clearShapes();
-		this.body.addRectangle(cWidth, cHeight, cX, cY);
+		super(x, y, sprite, cWidth, cHeight, cX, cY);
 		var gstate = game.state.getCurrentState();
 		this.body.cg = gstate.livingCG;
 		this.body.setCollisionGroup(this.body.cg);
@@ -216,7 +332,7 @@ class Maggot extends DraggableObject
 	{
 		super(x, y, 'maggot', 20, 10, 0, 0);
 		this.state = 0; // wait
-		this.direction = 1; // right
+		this.setDirection(1); // right
 		this.stateTimer = 1000;
 		this.animations.getAnimation('idle').onLoop.add(this.animationLooped, this);
 		this.animations.getAnimation('walk').onLoop.add(this.animationLooped, this);
@@ -235,11 +351,11 @@ class Maggot extends DraggableObject
 					this.state = 1;
 					this.stateTimer = Math.random() * 2000 + 1000;
 					if (this.x <= 100) {
-						this.direction = 1;
+						this.setDirection(1);
 					} else if (this.x >= game.world.width - 100) {
-						this.direction = -1;
+						this.setDirection(-1);
 					} else {
-						this.direction = Math.random() < 0.5 ? -1 : 1;
+						this.setDirection(Math.random() < 0.5 ? -1 : 1);
 					}
 					this.animations.play('walk', 8);
 				}
@@ -263,7 +379,6 @@ class Maggot extends DraggableObject
 		if (this.state == 1) {
 				this.body.velocity.x = 16 * this.direction;
 		}
-		this.scale.x = this.direction;
 	}
 
 	deadlyImpact()
@@ -273,6 +388,68 @@ class Maggot extends DraggableObject
 }
 
 ////// pumpkin zombie (copy maggot, but change a bit)
+class PumpkinZombie extends DraggableObject
+{
+	constructor(x, y)
+	{
+		super(x, y, 'pumpkinzombie', 20, 14, 0, 0);
+		this.state = 0; // wait
+		this.setDirection(1); // right
+		this.stateTimer = 1000;
+		this.animations.getAnimation('idle').onLoop.add(this.animationLooped, this);
+		this.animations.getAnimation('walk').onLoop.add(this.animationLooped, this);
+	}
+
+	animationLooped(sprite, anim)
+	{
+		if (!this.isOnGround) return;
+		switch (this.state)
+		{
+			case 0: 
+				if (this.stateTimer <= 0) {
+					this.state = 1;
+					this.stateTimer = Math.random() * 2000 + 1000;
+					if (this.x <= 100) {
+						this.setDirection(1);
+					} else if (this.x >= game.world.width - 100) {
+						this.setDirection(-1);
+					} else {
+						this.setDirection(Math.random() < 0.5 ? -1 : 1);
+					}
+					this.animations.play('walk', 8);
+				}
+				break;
+			case 1:
+				if (this.stateTimer <= 0) {
+					this.state = 0;
+					this.stateTimer = Math.random() * 4000 + 1500;
+					this.animations.play('idle');
+					this.body.velocity.x = 0;
+				}
+				break;
+		}
+	}
+
+	update()
+	{
+		super.update();
+		if (!this.isOnGround) {
+			this.state = 0;
+			return;
+		}
+		this.stateTimer -= game.time.elapsed;
+		if (this.state == 1) {
+				this.body.velocity.x = 16 * this.direction;
+		} else {
+				this.body.velocity.x = 0;
+		}
+	}
+
+	deadlyImpact()
+	{
+		// nothing happens...
+	}
+}
 
 class Cow extends DraggableObject
 {
@@ -281,7 +458,7 @@ class Cow extends DraggableObject
 		super(x, y, type, 28, 20, 0, 0);
 		this.type = type;
 		this.state = 0; // wait
-		this.direction = 1; // right
+		this.setDirection(1); // right
 		this.stateTimer = 1000;	
 	}
 
@@ -297,11 +474,11 @@ class Cow extends DraggableObject
 					this.state = 1;
 					this.stateTimer = Math.random() * 1000 + 1000;
 					if (this.x <= 100) {
-						this.direction = 1;
+						this.setDirection(1);
 					} else if (this.x >= game.world.width - 100) {
-						this.direction = -1;
+						this.setDirection(-1);
 					} else {
-						this.direction = Math.random() < 0.5 ? -1 : 1;
+						this.setDirection(Math.random() < 0.5 ? -1 : 1);
 					}
 					this.animations.play('walk');
 				}
@@ -316,7 +493,6 @@ class Cow extends DraggableObject
 				}
 				break;
 		}
-		this.scale.x = this.direction;
 	}
 
 	deadlyImpact()
@@ -337,6 +513,8 @@ class GameState extends Phaser.State
 	{
 		game.load.image('bg', 'gfx/background.png');
 		game.load.image('bgfloor', 'gfx/background_floor.png');
+		game.load.image('bar_bg', 'gfx/bar_bg.png');
+		game.load.image('bar_fg', 'gfx/bar_fg.png');
 		game.load.spritesheet("cow", 'gfx/cow.png', 32, 32);
 		game.load.spritesheet("cowzombie", 'gfx/cow_zombie.png', 32, 32);
 		game.load.spritesheet("cowpumpkin", 'gfx/cow_pumpkin.png', 32, 32);
@@ -430,12 +608,12 @@ class GameState extends Phaser.State
 	spawnCowZombie(x, y, direction)
 	{
 		var cow = new Cow(x, y, 'cowzombie');
-		cow.direction = direction;
+		cow.setDirection(direction);
 	}
 
 	spawnCow(x, y)
 	{
-		new Cow(x, y, 'cow');
+		var cow = new Cow(x, y, 'cow');
 	}
 
 	create ()
@@ -498,7 +676,7 @@ class GameState extends Phaser.State
 		*/
 		
 		// spawn the first cow
-		this.spawnCow(32, 240 - 16);
+		this.spawnCow(128, 240 - 10);
 
 		game.world.setBounds(0, 0, 512, 864);
 		game.camera.scale.setTo(2);
@@ -674,6 +852,15 @@ class GameState extends Phaser.State
 				gs.spawnPoof(sprite.x, sprite.y);
 			}
 		}
+		else if ((sprite instanceof CorpseZombie) && (dragSprite instanceof Seed))
+		{
+			return function(){				
+				new PumpkinZombie(sprite.x, sprite.y);
+				sprite.destroy();
+				dragSprite.destroy();
+				gs.spawnPoof(sprite.x, sprite.y);
+			}
+		}
 		else if ((sprite instanceof Cow) && sprite.type === 'cow' && (dragSprite instanceof Pumpkin))
 		{
 			return function(){
@@ -685,10 +872,9 @@ class GameState extends Phaser.State
 		}
 		else if ((sprite instanceof CorpsePumpkin) && (dragSprite instanceof Seed))
 		{
-			return function(){				
-				new Salad(sprite.x, sprite.y);
-				sprite.destroy();
+			return function(){
 				dragSprite.destroy();
+				sprite.animations.play('spawnsalad'); // creates salad obj after animation ended
 				gs.spawnPoof(sprite.x, sprite.y);
 			}
 		}
@@ -742,6 +928,7 @@ class GameState extends Phaser.State
 		game.input.keyboard.addKey(Phaser.Keyboard.THREE).onDown.add(function() {this.functionKey(2);}, this);
 		game.input.keyboard.addKey(Phaser.Keyboard.FOUR).onDown.add(function() {this.functionKey(3);}, this);
 		game.input.keyboard.addKey(Phaser.Keyboard.FIVE).onDown.add(function() {this.functionKey(4);}, this);
+		game.input.keyboard.addKey(Phaser.Keyboard.SIX).onDown.add(function() {this.functionKey(5);}, this);
 	}
 	
 	// Add debug spawns here!
@@ -760,9 +947,12 @@ class GameState extends Phaser.State
 				new CorpseZombie(this.mouseBody.x, this.mouseBody.y);
 				break;				
 			case 4:
-				//new Maggot(this.mouseBody.x, this.mouseBody.y);
+				new CorpsePumpkin(this.mouseBody.x, this.mouseBody.y);
 				break;				
 			case 5:
+				new Seed(this.mouseBody.x, this.mouseBody.y);
+				break;
+			case 6:
 				//new Maggot(this.mouseBody.x, this.mouseBody.y);
 				break;
 		}
