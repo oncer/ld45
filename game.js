@@ -289,7 +289,8 @@ class VampireBat extends StaticObject
 		var gstate = game.state.getCurrentState();
 		var cows = [];
 		for (let obj of gstate.livingGroup.children) {
-			if (obj instanceof Cow && obj.type === 'cow') {
+			if (obj instanceof Cow && obj.type === 'cow'
+					&& obj.x > 32 && obj.y < game.world.width - 32) {
 				cows.push(obj);
 			}
 		}
@@ -326,10 +327,12 @@ class VampireBat extends StaticObject
 			this.body.velocity.x = 50 * Math.sin(game.time.now / 500);
 			if (this.x > this.cow.x) this.body.velocity.x -= 100;
 			if (this.x < this.cow.x) this.body.velocity.x += 100;
-			if (Math.abs(this.x - this.cow.x) > 32 && this.y > 100) {
+			if (Math.abs(this.x - this.cow.x) > 32 && this.y > 150) {
 				this.body.velocity.y = -100;
 			} else {
-				this.body.velocity.y = this.y < this.cow.y ? 0 : -100;
+				if (this.y > this.cow.y) {
+					this.body.velocity.y = -100;
+				}
 			}
 			if (Phaser.Math.distance(this.x, this.y, this.cow.x, this.cow.y) < 16) {
 				var cowVampire = new Cow(this.cow.x, this.cow.y, 'cowvampire');
