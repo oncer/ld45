@@ -21,17 +21,34 @@ class Corpse extends StaticObject
 	constructor(x, y)
 	{
 		super(x, y, 'corpse', 32, 16, 0, 8);
-		this.time = 0;
+		this.decayAnim = this.animations.add('decay', [1,2,3,4,5,6,7], 1, false);
+		this.decayAnim.onComplete.add(this.decay, this);
+		this.animations.play('idle');
+		this.decayed = false;
+		this.countdown = 4000;
 	}
 
 	update()
 	{
-		this.time += game.time.elapsed;
-		if (this.time > 5000) {
-			new Maggot(this.x, this.y);
-			game.state.getCurrentState().spawnPoof(this.x, this.y);
-			this.destroy();
+		if (this.decayed) {
+			this.alpha -= game.time.elapsed / 5000;
+			if (this.alpha < 0) {
+				this.alpha = 0;
+				this.destroy();
+			}
+		} else if (this.countdown > 0) {
+			this.countdown -= game.time.elapsed;
+			if (this.countdown <= 0) {
+				this.decayAnim.play();
+			}
 		}
+	}
+
+	decay()
+	{
+		new Maggot(this.x, this.y);
+		game.state.getCurrentState().spawnPoof(this.x, this.y);
+		this.decayed = true;
 	}
 }
 
