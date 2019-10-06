@@ -217,7 +217,6 @@ class BirdTotem extends StaticObject
 		this.eatTimer = 0;
 		this.seedTimer = 0;
 		this.canGet = false;
-		//this.transform = false;
 
 		if (type === 'birdtotemblood') {
 			this.eatTimer = 2000 + Math.random() * 1000;
@@ -465,6 +464,16 @@ class PumpkinSalad extends DraggableObject
 	constructor(x, y)
 	{
 		super(x, y, 'pumpkinsalad', 32, 21, 0, 0);
+		this.transformAnim = this.animations.add('transform', [10,11,12,13], 10, false);
+		this.transformAnim.onComplete.add(this.transformAnimEnd, this);
+		this.animations.play('idle');
+	}
+	
+	transformAnimEnd()
+	{
+		// create bat
+		new VampireBat(this.x, this.y);
+		this.destroy();
 	}
 }
 
@@ -1077,13 +1086,22 @@ class GameState extends Phaser.State
 				gs.spawnPoof(sprite.x, sprite.y);
 			}
 		}
-		else if ((sprite instanceof BirdTotem) && sprite.transform == false && (dragSprite instanceof PumpkinSalad))
+		else if ((sprite instanceof BirdTotem) && (dragSprite instanceof PumpkinSalad))
 		{
 			return function(){
-				new VampireBat(sprite.x, sprite.y);
 				sprite.destroy();
-				dragSprite.destroy();
-				gs.spawnPoof(sprite.x, sprite.y);
+				
+				dragSprite.animations.play('transform');
+				dragSprite.canBeDragged = false;
+				dragSprite.body.gravity = 0;
+				dragSprite.body.static = true;
+				dragSprite.body.angularDamping = 1;
+				dragSprite.body.rotation = 0;
+				dragSprite.body.angularVelocity = 0;
+				dragSprite.body.velocity.x = 0;
+				dragSprite.body.velocity.y = 0;
+				
+				gs.spawnPoof(dragSprite.x, dragSprite.y);
 			}
 		}
 
@@ -1140,6 +1158,7 @@ class GameState extends Phaser.State
 		game.input.keyboard.addKey(Phaser.Keyboard.FIVE).onDown.add(function() {this.functionKey(4);}, this);
 		game.input.keyboard.addKey(Phaser.Keyboard.SIX).onDown.add(function() {this.functionKey(5);}, this);
 		game.input.keyboard.addKey(Phaser.Keyboard.SEVEN).onDown.add(function() {this.functionKey(6);}, this);
+		game.input.keyboard.addKey(Phaser.Keyboard.EIGHT).onDown.add(function() {this.functionKey(7);}, this);
 	}
 	
 	// Add debug spawns here!
@@ -1163,8 +1182,11 @@ class GameState extends Phaser.State
 			case 5:
 				new Seed(this.mouseBody.x, this.mouseBody.y);
 				break;
-			case 7:
+			case 6:
 				new Tomato(this.mouseBody.x, this.mouseBody.y);
+				break;
+			case 7:
+				new PumpkinSalad(this.mouseBody.x, this.mouseBody.y);
 				break;
 		}
 	}
