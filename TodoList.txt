@@ -2,9 +2,9 @@ Todo list:
 
 needs fixing:
 [?] drag-collisions / detection
-[ ] gore stuff flying out of cow corpses (fixed y-position, because if you slam it down really fast they spawn too far below)
 
 think about:
+[ ] gore stuff flying out of cow corpses (fixed y-position, because if you slam it down really fast they spawn too far below)
 [x] if you try to feed bird again while he's in eating animation: have to move back out and in again for it to be highlighted/possible to feed him again
 [ ] endless birds?
 [ ] maggot: should disappear after a while?
@@ -29,7 +29,7 @@ crafting:
 [x] pumpkin-human-baby: give normal pumpkin 2 corn // OLD: give it to zombie pumpkin
 [x] human-like cow: give pumpkin-human-baby to normal? cow
 [x] human-like cow-corpse
-[ ] avocados: put triangle-seed onto human-like cow-corpse
+[x] avocados: put triangle-seed onto human-like cow-corpse
 [ ] finished vegan meal (10? salads, 5? tomatoes, 1? avocados)
 
 graphics:
@@ -57,4 +57,5 @@ other stuff:
 [ ] sounds / music
 [ ] label with crafted items somewhere (on the top of the screen)?
 [ ] intro sequence
+[ ] ending sequence
 [ ] maybe: title screen (before starting game; maybe text that tells you how to control the game (touch controls/the mouse))
