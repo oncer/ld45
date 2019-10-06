@@ -792,7 +792,6 @@ class GameState extends Phaser.State
 		
 		// spawn the first cow
 		this.spawnCow(128, 240 - 10);
-		new VampireBat(256, 240 - 16);
 
 		game.world.setBounds(0, 0, 512, 864);
 		game.camera.scale.setTo(2);
