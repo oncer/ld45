@@ -195,6 +195,8 @@ class CorpsePumpkin extends StaticObject
 		super(x, y, 'corpsepumpkin', 32, 16, 0, 8);
 		this.saladAnim = this.animations.add('spawnsalad', [4,5,6,7], 1, false);
 		this.saladAnim.onComplete.add(this.spawnSalad, this);
+		//this.cornAnim = this.animations.add('spawncorn', [4,5,6,7], 1, false);
+		//this.cornAnim.onComplete.add(this.spawnCorn, this);
 		this.canGet = true;
 	}
 	
@@ -203,6 +205,12 @@ class CorpsePumpkin extends StaticObject
 		new Salad(this.x, this.y+10);
 		this.destroy();
 	}
+	
+	/*spawnCorn()
+	{
+		new Corn(this.x, this.y+8);
+		this.destroy();
+	}*/
 }
 
 class CorpseVampire extends StaticObject
@@ -1190,6 +1198,15 @@ class GameState extends Phaser.State
 			return function(){
 				dragSprite.destroy();
 				sprite.animations.play('spawntomato'); // creates tomato obj after animation ended
+				sprite.canGet = false;
+				gs.spawnPoof(sprite.x, sprite.y);
+			}
+		}
+		else if ((sprite instanceof Corpse || sprite instanceof CorpseZombie || sprite instanceof CorpsePumpkin || sprite instanceof CorpseVampire) && sprite.canGet == true && (dragSprite instanceof SeedTriangle))
+		{
+			return function(){
+				dragSprite.destroy();
+				sprite.animations.play('spawncorn'); // creates corn obj after animation ended
 				sprite.canGet = false;
 				gs.spawnPoof(sprite.x, sprite.y);
 			}
