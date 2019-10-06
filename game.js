@@ -66,6 +66,14 @@ class CorpsePumpkin extends StaticObject
 	constructor(x, y)
 	{
 		super(x, y, 'corpsepumpkin', 32, 16, 0, 8);
+		this.saladAnim = this.animations.add('spawnsalad', [4,5,6,7], 1, false);
+		this.saladAnim.onComplete.add(this.spawnSalad, this);
+	}
+	
+	spawnSalad()
+	{
+		new Salad(this.x, this.y+10);
+		this.destroy();
 	}
 }
 
@@ -685,10 +693,9 @@ class GameState extends Phaser.State
 		}
 		else if ((sprite instanceof CorpsePumpkin) && (dragSprite instanceof Seed))
 		{
-			return function(){				
-				new Salad(sprite.x, sprite.y);
-				sprite.destroy();
+			return function(){
 				dragSprite.destroy();
+				sprite.animations.play('spawnsalad'); // creates salad obj after animation ended
 				gs.spawnPoof(sprite.x, sprite.y);
 			}
 		}
@@ -742,6 +749,7 @@ class GameState extends Phaser.State
 		game.input.keyboard.addKey(Phaser.Keyboard.THREE).onDown.add(function() {this.functionKey(2);}, this);
 		game.input.keyboard.addKey(Phaser.Keyboard.FOUR).onDown.add(function() {this.functionKey(3);}, this);
 		game.input.keyboard.addKey(Phaser.Keyboard.FIVE).onDown.add(function() {this.functionKey(4);}, this);
+		game.input.keyboard.addKey(Phaser.Keyboard.SIX).onDown.add(function() {this.functionKey(5);}, this);
 	}
 	
 	// Add debug spawns here!
@@ -760,9 +768,12 @@ class GameState extends Phaser.State
 				new CorpseZombie(this.mouseBody.x, this.mouseBody.y);
 				break;				
 			case 4:
-				//new Maggot(this.mouseBody.x, this.mouseBody.y);
+				new CorpsePumpkin(this.mouseBody.x, this.mouseBody.y);
 				break;				
 			case 5:
+				new Seed(this.mouseBody.x, this.mouseBody.y);
+				break;
+			case 6:
 				//new Maggot(this.mouseBody.x, this.mouseBody.y);
 				break;
 		}
