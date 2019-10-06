@@ -124,6 +124,11 @@ class DraggableObject extends Phaser.Sprite
 		} else {
 			this.animations.add('drag', [0], 1, true);
 		}
+		if (this.animations.frameTotal > 9) {
+			this.animations.add('highlight', [9], 1, true);
+		} else {
+			this.animations.add('highlight', [0], 1, true);
+		}
 		this.animations.play('idle');
 		
 		this.isOnGround = true;
@@ -493,22 +498,51 @@ class GameState extends Phaser.State
 		}
 	}
 
-	checkDragCombine(sprite, dragSprite)
+	getDragCombineFn(mousePos)
 	{
+		if (!this.draggedBody) return;
+
+		// check if we can combine with another object
+		var bodiesLiving = game.physics.p2.hitTest(mousePos, this.livingGroup.children);
+		var bodiesStatic = game.physics.p2.hitTest(mousePos, this.staticGroup.children);
+		var bodies = bodiesLiving.concat(bodiesStatic);
+		var sprite = undefined;
+		var dragSprite = undefined;
+		if (bodies.length > 0)
+		{
+			for (var i = 0; i < bodies.length; i++) {
+				if (bodies[i] !== this.draggedBody) {
+					sprite = bodies[i].parent.sprite;
+					dragSprite = this.draggedBody.parent.sprite;
+				}
+			}
+		}
+
+		if (!sprite || !dragSprite) return false;
+
+		var gs = this; // closure
 		if ((sprite instanceof Cow) && !sprite.zombie && (dragSprite instanceof Maggot))
 		{
-			this.spawnCowZombie(sprite.x, sprite.y, sprite.direction);
-			sprite.destroy();
-			dragSprite.destroy();
-			this.spawnPoof(sprite.x, sprite.y);
+			return function(){
+				gs.spawnCowZombie(sprite.x, sprite.y, sprite.direction);
+				sprite.destroy();
+				dragSprite.destroy();
+				gs.spawnPoof(sprite.x, sprite.y);
+			}
 		} else if ((sprite instanceof CorpseZombie) && (dragSprite instanceof Maggot)) {
-			new BirdTotem(sprite.x, sprite.y);
-			sprite.destroy();
-			dragSprite.destroy();
-			this.spawnPoof(sprite.x, sprite.y);
+			return function(){
+				new BirdTotem(sprite.x, sprite.y);
+				sprite.destroy();
+				dragSprite.destroy();
+				gs.spawnPoof(sprite.x, sprite.y);
+			}
 		} else if ((sprite instanceof BirdTotem) && !sprite.isEating() && (dragSprite instanceof Maggot)) {
-			sprite.eatMaggot(dragSprite);
+			return function(){
+				sprite.eatMaggot(dragSprite);
+			}
 		}
+
+		return false;
 	}
 
 	mouseMove(pointer, x, y, isDown)
@@ -516,6 +550,17 @@ class GameState extends Phaser.State
 		this.mouseBody.body.x = x / game.camera.scale.x;
 		this.mouseBody.body.y = y / game.camera.scale.y;
 
+		var mousePos = new Phaser.Point(pointer.x / game.camera.scale.x, pointer.y / game.camera.scale.y);
+
+		if (!this.draggedBody) return;
+		var draggedSprite = this.draggedBody.parent.sprite;
+		if (draggedSprite) {
+			if (this.getDragCombineFn(mousePos)) {
+				draggedSprite.animations.play('highlight');
+			} else {
+				draggedSprite.animations.play('drag');
+			}
+		}
 	}
 
 	mouseRelease(pointer)
@@ -528,19 +573,12 @@ class GameState extends Phaser.State
 				this.draggedBody.parent.sprite.animations.play('idle');
 			}
 
-			// check if we can combine with another object
 			var mousePos = new Phaser.Point(pointer.x / game.camera.scale.x, pointer.y / game.camera.scale.y);
-			var bodiesLiving = game.physics.p2.hitTest(mousePos, this.livingGroup.children);
-			var bodiesStatic = game.physics.p2.hitTest(mousePos, this.staticGroup.children);
-			var bodies = bodiesLiving.concat(bodiesStatic);
-			if (bodies.length > 0)
-			{
-				for (var i = 0; i < bodies.length; i++) {
-					if (bodies[i] !== this.draggedBody) {
-						this.checkDragCombine(bodies[i].parent.sprite, this.draggedBody.parent.sprite);
-					}
-				}
-			}
+
+			var fn = this.getDragCombineFn(mousePos);
+			if (fn) fn();
+
+			this.draggedBody = undefined;
 		}	
 	}
 
