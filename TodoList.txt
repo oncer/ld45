@@ -51,7 +51,7 @@ graphics:
 [x] vampire cow-corpse
 [x] pumpkin-human-baby
 [x] human-like cow
-[ ] human-like cow corpse
+[x] human-like cow corpse
 
 other stuff:
 [ ] sounds / music
