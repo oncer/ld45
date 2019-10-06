@@ -122,7 +122,11 @@ class StaticObject extends InteractiveObject
 		var gstate = game.state.getCurrentState();
 		this.body.cg = gstate.staticCG;
 		this.body.setCollisionGroup(this.body.cg);
-		gstate.staticGroup.add(this);
+		if (sprite === 'vampirebat') {
+			gstate.livingGroup.add(this); // exception for vampirebat
+		} else {
+			gstate.staticGroup.add(this);
+		}
 		this.body.collides([gstate.bgCG, gstate.draggedCG]);
 		this.animations.add('idle', [0,1,2,3], 4, true);
 		this.animations.play('idle');
@@ -241,6 +245,77 @@ class BirdTotem extends StaticObject
 		obj.destroy();
 		this.eatTimer = 2000 + Math.random() * 1000;
 		this.animations.play('eat');
+	}
+}
+
+// not really "static" because it will fly around
+class VampireBat extends StaticObject
+{
+	constructor(x, y)
+	{
+		super(x, y, 'vampirebat', 32, 32, 0, 0);
+		this.animations.stop();
+		this.animations.play('idle', 20);
+		this.cow = null;
+		this.angleDrag = 0.995;
+		this.state = 0; // wait and search
+		this.stateCountdown = 8000;
+		var gstate = game.state.getCurrentState();
+	}
+
+	findCow()
+	{
+		var gstate = game.state.getCurrentState();
+		var cows = [];
+		for (let obj of gstate.livingGroup.children) {
+			if (obj instanceof Cow && obj.type === 'cow') {
+				cows.push(obj);
+			}
+		}
+		if (cows.length == 0) return null;
+		return cows[Math.floor(Math.random() * cows.length)];
+	}
+
+	update()
+	{
+		this.body.angularVelocity = 0;
+
+		if (this.cow && !this.cow._frame && this.state !== 0) { // cow has been destroyed!!!
+			// retreat!
+			this.state = 0;
+			this.stateCountdown = 8000;
+			this.cow = null;
+		}
+
+		this.stateCountdown -= game.time.elapsed;
+		if (this.state === 0) { // wait and search
+			if (this.y > 70) {
+				this.body.velocity.y = -200;
+				this.body.velocity.x = 100 * Math.sin(game.time.now / 500);
+			}
+			if (this.stateCountdown <= 0) {
+				this.cow = this.findCow();
+				if (this.cow != null) {
+					this.state = 1;
+					this.stateCountdown = 5000;
+					this.bringToTop();
+				}
+			}
+		} else if (this.state === 1) { // catch a cow
+			this.body.velocity.x = 50 * Math.sin(game.time.now / 500);
+			if (this.x > this.cow.x) this.body.velocity.x -= 100;
+			if (this.x < this.cow.x) this.body.velocity.x += 100;
+			if (Math.abs(this.x - this.cow.x) > 32 && this.y > 100) {
+				this.body.velocity.y = -100;
+			}
+			if (Phaser.Math.distance(this.x, this.y, this.cow.x, this.cow.y) < 16) {
+				var cowVampire = new Cow(this.cow.x, this.cow.y, 'cowvampire');
+				cowVampire.setDirection(this.cow.direction);
+				game.state.getCurrentState().spawnPoofBlood(this.x, this.y);
+				this.cow.destroy();
+				this.destroy();
+			}
+		}
 	}
 }
 
@@ -520,6 +595,7 @@ class GameState extends Phaser.State
 		game.load.spritesheet("cow", 'gfx/cow.png', 32, 32);
 		game.load.spritesheet("cowzombie", 'gfx/cow_zombie.png', 32, 32);
 		game.load.spritesheet("cowpumpkin", 'gfx/cow_pumpkin.png', 32, 32);
+		game.load.spritesheet("cowvampire", 'gfx/cow_vampire.png', 32, 32);
 		game.load.spritesheet("corpse", 'gfx/corpse.png', 32, 32);
 		game.load.spritesheet("corpsezombie", 'gfx/corpse_zombie.png', 32, 32);
 		game.load.spritesheet("corpsepumpkin", 'gfx/corpse_pumpkin.png', 32, 32);
@@ -532,6 +608,7 @@ class GameState extends Phaser.State
 		game.load.spritesheet('poofblood', 'gfx/poof_blood.png', 32, 32);
 		game.load.spritesheet('birdtotem', 'gfx/bird_totem.png', 32, 32);
 		game.load.spritesheet("salad", 'gfx/salad.png', 32, 32);
+		game.load.spritesheet("vampirebat", 'gfx/bat.png', 32, 32);
 		
 		//game.load.spritesheet('propeller', 'gfx/propeller.png', 16, 64, 4);
 		game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
@@ -616,6 +693,7 @@ class GameState extends Phaser.State
 	spawnCow(x, y)
 	{
 		var cow = new Cow(x, y, 'cow');
+		return cow;
 	}
 
 	create ()
@@ -679,6 +757,7 @@ class GameState extends Phaser.State
 		
 		// spawn the first cow
 		this.spawnCow(128, 240 - 10);
+		new VampireBat(256, 240 - 16);
 
 		game.world.setBounds(0, 0, 512, 864);
 		game.camera.scale.setTo(2);
@@ -739,14 +818,19 @@ class GameState extends Phaser.State
 		//if (pointerPos.y > this.maxMouseY + 16 / game.camera.scale.y) return;
 		
 		var bodies = game.physics.p2.hitTest(mousePos, this.livingGroup.children);
-		if (bodies.length > 0)
+		this.draggedBody = undefined;
+		for (let body of bodies) {
+			if (body.parent.sprite instanceof DraggableObject) {
+				this.draggedBody = body;
+			}
+		}
+		if (this.draggedBody)
 		{
 			// if (bodies[0] instanceof DraggableObject && !bodies[0].canBeDragged) {
 				// console.log("can't drag this one");				
 				// return;
 			// }
 
-			this.draggedBody = bodies[0];
 			this.draggedBody.parent.sprite.bringToTop();
 			this.draggedBody.parent.sprite.isOnGround = false;
 			this.draggedBody.parent.sprite.animations.play('drag');
