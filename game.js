@@ -101,7 +101,7 @@ class BirdTotem extends StaticObject
 			if (this.seedTimer <= 0) {
 				var x = this.x + 20 * this.direction;
 				var y = this.y;
-				new Seed(x, y);
+				new /*Seed*/Pumpkin(x, y);
 				game.state.getCurrentState().spawnPoof(x, y);
 			}
 		}
@@ -183,6 +183,14 @@ class Seed extends DraggableObject
 	constructor(x, y)
 	{
 		super(x, y, 'seed', 18, 18, 0, 0);
+	}
+}
+
+class Pumpkin extends DraggableObject
+{
+	constructor(x, y)
+	{
+		super(x, y, 'pumpkin', 16, 16, 0, 0);
 	}
 }
 

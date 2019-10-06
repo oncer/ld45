@@ -43,6 +43,7 @@ graphics:
 [ ] zombie-pumpkin
 [ ] bat
 
+[ ] zombie cow-gore? (normal, red gore flies away, but the corpse is green)
 [ ] pumpkin cow
 [ ] pumpkin cow-corpse
 [ ] vampire cow
