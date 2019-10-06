@@ -57,5 +57,6 @@ other stuff:
 [ ] sounds / music
 [ ] label with crafted items somewhere (on the top of the screen)?
 [ ] intro sequence
+[ ] at the end of funnel (all things filled): big plate with finished meal (64x64)?
 [ ] ending sequence
 [ ] maybe: title screen (before starting game; maybe text that tells you how to control the game (touch controls/the mouse))
