@@ -328,11 +328,22 @@ class VampireBat extends StaticObject
 			if (this.x < this.cow.x) this.body.velocity.x += 100;
 			if (Math.abs(this.x - this.cow.x) > 32 && this.y > 100) {
 				this.body.velocity.y = -100;
+			} else {
+				this.body.velocity.y = this.y < this.cow.y ? 0 : -100;
 			}
 			if (Phaser.Math.distance(this.x, this.y, this.cow.x, this.cow.y) < 16) {
 				var cowVampire = new Cow(this.cow.x, this.cow.y, 'cowvampire');
 				cowVampire.setDirection(this.cow.direction);
-				game.state.getCurrentState().spawnPoofBlood(this.x, this.y);
+				var gstate = game.state.getCurrentState();
+				gstate.spawnPoofBlood(this.x, this.y);
+				if (gstate.draggedBody && gstate.draggedBody.parent.sprite === this.cow) {
+					console.log("dragged cow vampire");
+					gstate.draggedBody = undefined;
+					if (gstate.mouseSpring !== undefined) {
+						game.physics.p2.removeConstraint(gstate.mouseSpring);
+						gstate.mouseSpring = undefined;
+					}
+				}
 				this.cow.destroy();
 				this.destroy();
 			}
@@ -926,6 +937,7 @@ class GameState extends Phaser.State
 		this.dragContactFn = undefined;
 		if (!this.draggedBody) return;
 		var dragSprite = this.draggedBody.parent.sprite;
+		if (!dragSprite) return;
 		for (let sprite of this.dragContactSprites.values()) {
 			var fn = this.getDragCombineFn(sprite, dragSprite);
 			if (fn) {
