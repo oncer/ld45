@@ -1,7 +1,7 @@
 const PumpkinMaxCorn = 2;
-const PumpkinZombieMaxSalads = 5;
+const PumpkinZombieMaxSalads = 3;
 const CowMaxMaggots = 2;
-const BirdMaxMaggots = 4;
+const BirdMaxMaggots = 3;
 const BirdMaxMaggotsBlood = 2;
 
 class Bar extends Phaser.Sprite
