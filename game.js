@@ -8,9 +8,10 @@ class StaticObject extends Phaser.Sprite
 		this.body.clearShapes();
 		this.body.addRectangle(cWidth, cHeight, cX, cY);
 		var gstate = game.state.getCurrentState();
-		this.body.setCollisionGroup(gstate.staticCG);
+		this.body.cg = gstate.staticCG;
+		this.body.setCollisionGroup(this.body.cg);
 		gstate.staticGroup.add(this);
-		this.body.collides(gstate.bgCG);
+		this.body.collides([gstate.bgCG, gstate.draggedCG]);
 		this.animations.add('idle', [0,1,2,3], 4, true);
 		this.animations.play('idle');
 	}
@@ -123,9 +124,11 @@ class DraggableObject extends Phaser.Sprite
 		this.body.clearShapes();
 		this.body.addRectangle(cWidth, cHeight, cX, cY);
 		var gstate = game.state.getCurrentState();
-		this.body.setCollisionGroup(gstate.livingCG);
+		this.body.cg = gstate.livingCG;
+		this.body.setCollisionGroup(this.body.cg);
 		gstate.livingGroup.add(this);
 		this.body.collides(gstate.bgCG, gstate.draggableCollides, gstate);
+		this.body.collides(gstate.draggedCG);
 		//this.body.collides(gstate.bgSidesCG);
 		this.body.angularDamping = 0.995;
 
@@ -386,7 +389,7 @@ class GameState extends Phaser.State
 	create ()
 	{
 		// cow reset timer
-		this.cowtimer=60*5;
+		this.cowtimer = 1000;
 		
 		// mouse shall not be used below this value
 		this.maxMouseY = 232;
@@ -408,6 +411,8 @@ class GameState extends Phaser.State
 
 		this.livingCG = game.physics.p2.createCollisionGroup();
 		this.livingGroup = game.add.group();
+
+		this.draggedCG = game.physics.p2.createCollisionGroup();
 		
 		// bg collision
 		this.bgCollision = game.add.sprite(0, 0);		
@@ -512,54 +517,11 @@ class GameState extends Phaser.State
 			
 			// use a revoluteContraint to attach mouseBody to the clicked body
 			this.mouseSpring = this.game.physics.p2.createRevoluteConstraint(this.mouseBody, [0, 0], this.draggedBody, [game.physics.p2.mpxi(localPointInBody[0]), game.physics.p2.mpxi(localPointInBody[1]) ]);
+			this.draggedBody.parent.setCollisionGroup(this.draggedCG);
+			this.draggedBody.parent.collides([this.livingCG, this.staticCG]);
+			this.draggedBody.parent.data.shapes[0].sensor = true;
+			this.draggedBody.parent.onBeginContact.add(this.dragContact, this);
 		}
-	}
-
-	getDragCombineFn(mousePos)
-	{
-		if (!this.draggedBody) return;
-
-		// check if we can combine with another object
-		var bodiesLiving = game.physics.p2.hitTest(mousePos, this.livingGroup.children);
-		var bodiesStatic = game.physics.p2.hitTest(mousePos, this.staticGroup.children);
-		var bodies = bodiesLiving.concat(bodiesStatic);
-		var sprite = undefined;
-		var dragSprite = undefined;
-		if (bodies.length > 0)
-		{
-			for (var i = 0; i < bodies.length; i++) {
-				if (bodies[i] !== this.draggedBody) {
-					sprite = bodies[i].parent.sprite;
-					dragSprite = this.draggedBody.parent.sprite;
-				}
-			}
-		}
-
-		if (!sprite || !dragSprite) return false;
-
-		var gs = this; // closure
-		if ((sprite instanceof Cow) && !sprite.zombie && (dragSprite instanceof Maggot))
-		{
-			return function(){
-				gs.spawnCowZombie(sprite.x, sprite.y, sprite.direction);
-				sprite.destroy();
-				dragSprite.destroy();
-				gs.spawnPoof(sprite.x, sprite.y);
-			}
-		} else if ((sprite instanceof CorpseZombie) && (dragSprite instanceof Maggot)) {
-			return function(){
-				new BirdTotem(sprite.x, sprite.y);
-				sprite.destroy();
-				dragSprite.destroy();
-				gs.spawnPoof(sprite.x, sprite.y);
-			}
-		} else if ((sprite instanceof BirdTotem) && !sprite.isEating() && (dragSprite instanceof Maggot)) {
-			return function(){
-				sprite.eatMaggot(dragSprite);
-			}
-		}
-
-		return false;
 	}
 
 	mouseMove(pointer, x, y, isDown)
@@ -595,8 +557,50 @@ class GameState extends Phaser.State
 			var fn = this.getDragCombineFn(mousePos);
 			if (fn) fn();
 
+			this.draggedBody.parent.setCollisionGroup(this.draggedBody.parent.cg);
+			this.draggedBody.parent.removeCollisionGroup([this.livingCG, this.staticCG], true);
+			this.draggedBody.parent.onBeginContact.removeAll();
+			this.draggedBody.parent.data.shapes[0].sensor = false;
 			this.draggedBody = undefined;
 		}	
+	}
+
+
+	dragContact(body, bodyB, shapeA, shapeB, equation)
+	{
+		var sprite = body.sprite;
+		var dragSprite = this.draggedBody.parent.sprite;
+		if (this.getDragCombineFn(sprite, dragSprite)) {
+			sprite.animations.play('highlight');
+		}
+	}
+
+	getDragCombineFn(sprite, dragSprite)
+	{
+		// check if we can combine
+		var gs = this; // closure
+		if ((sprite instanceof Cow) && !sprite.zombie && (dragSprite instanceof Maggot))
+		{
+			return function(){
+				gs.spawnCowZombie(sprite.x, sprite.y, sprite.direction);
+				sprite.destroy();
+				dragSprite.destroy();
+				gs.spawnPoof(sprite.x, sprite.y);
+			}
+		} else if ((sprite instanceof CorpseZombie) && (dragSprite instanceof Maggot)) {
+			return function(){
+				new BirdTotem(sprite.x, sprite.y);
+				sprite.destroy();
+				dragSprite.destroy();
+				gs.spawnPoof(sprite.x, sprite.y);
+			}
+		} else if ((sprite instanceof BirdTotem) && !sprite.isEating() && (dragSprite instanceof Maggot)) {
+			return function(){
+				sprite.eatMaggot(dragSprite);
+			}
+		}
+
+		return false;
 	}
 
 
@@ -609,25 +613,27 @@ class GameState extends Phaser.State
 		this.T = game.time.now/1000;
 		
 		// cowtimer
-		if (this.cowtimer>0) {this.cowtimer-=1;}
-		else if (this.cowtimer==0) {
-			var cowcounter=0;
-			// count cows
-			this.livingGroup.forEach(function(myobj) {	
-				if (myobj instanceof Cow)
-					cowcounter+=1;
-			}
-			);
-			
-			if (cowcounter<3) {
-				if (Math.random() < 0.5) {
-					this.spawnCow(-40, 240 - 16);
-				} else {
-					this.spawnCow(game.world.width + 40, 240 - 16);
+		if (this.cowtimer>0) {
+			this.cowtimer -= game.time.elapsed;
+			if (this.cowtimer<=0) {
+				var cowcounter=0;
+				// count cows
+				this.livingGroup.forEach(function(myobj) {	
+					if (myobj instanceof Cow)
+						cowcounter+=1;
 				}
-			}
+				);
 
-			this.cowtimer=60*5;
+				if (cowcounter<3) {
+					if (Math.random() < 0.5) {
+						this.spawnCow(-40, 240 - 16);
+					} else {
+						this.spawnCow(game.world.width + 40, 240 - 16);
+					}
+				}
+
+				this.cowtimer = 4000 + Math.random() * 2000;
+			}
 		}
 
 		var mouseX = game.input.activePointer.position.x / game.camera.scale.x;
@@ -645,17 +651,19 @@ class GameState extends Phaser.State
 
 	draggableCollides(drag, other)
 	{
-		drag.sprite.isOnGround = true;
-		if (this.mouseSpring === undefined && drag.sprite.prevY > 350)
-		{
-			drag.sprite.deadlyImpact();
-		}
-		/*
-		if (this.draggedBody && this.draggedBody.parent.sprite.body == drag.sprite.body) {
+		if (other.sprite === this.bgCollision) {
+			drag.sprite.isOnGround = true;
+			if (this.mouseSpring === undefined && drag.sprite.prevY > 350)
+			{
+				drag.sprite.deadlyImpact();
+			}
+			/*
+			if (this.draggedBody && this.draggedBody.parent.sprite.body == drag.sprite.body) {
 
-			game.physics.p2.removeConstraint(this.mouseSpring);
+				game.physics.p2.removeConstraint(this.mouseSpring);
+			}
+			*/
 		}
-		*/
 	}
 
 	setMousePointerBounds()
