@@ -11,7 +11,7 @@ think about:
 [ ] endless birds?
 [ ] maggot: should disappear after a while?
 [ ] bat, pumpkin-human-baby, pumpkins, zombie-pumpkins, etc: what happens if too long there?
-[ ] bat: where does it stay?
+[x] bat: where does it stay?
 
 crafting:
 [x] pumpkin: put seed onto fresh normal cow-corpse
@@ -43,7 +43,7 @@ graphics:
 [ ] finished vegan meal
 
 [x] zombie-pumpkin
-[x] bat (missing: bite)
+[ ] maybe: bat (missing: bite)
 
 [ ] maybe: zombie cow-gore? (red gore flies away, but the corpse is green)
 [ ] maybe: pumpkin cow-gore? (red gore flies away, but the corpse is orange)
