@@ -13,10 +13,10 @@ think about:
 
 crafting:
 [x] pumpkin: put seed onto fresh normal cow-corpse
-[ ] zombie-pumpkin: put seed onto zombie cow-corpse
+[x] zombie-pumpkin: put seed onto zombie cow-corpse
 [ ] big, green pumpkin: feed zombie pumpkin 5 salads
 
-[ ] bat (big, green pumpkin given to bird -> maybe bird eats it and transforms into bat?)
+[ ] bat (comes out of salad pumpkin) // OLD: (big, green pumpkin given to bird -> maybe bird eats it and transforms into bat?)
 [x] pumpkin cow: feed normal pumpkin to a normal cow
 [x] pumpkin cow-corpse
 [ ] vampire cow: put bat onto cow -> transforms (poof?)
@@ -40,8 +40,8 @@ graphics:
 [ ] corn
 [ ] finished vegan meal
 
-[ ] zombie-pumpkin
-[ ] bat
+[x] zombie-pumpkin
+[ ] bat (missing: bite)
 
 [ ] maybe: zombie cow-gore? (red gore flies away, but the corpse is green)
 [ ] maybe: pumpkin cow-gore? (red gore flies away, but the corpse is orange)
