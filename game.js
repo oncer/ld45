@@ -416,6 +416,14 @@ class Pumpkin extends DraggableObject
 	}
 }
 
+class PumpkinSalad extends DraggableObject
+{
+	constructor(x, y)
+	{
+		super(x, y, 'pumpkinsalad', 32, 21, 0, 0);
+	}
+}
+
 class Salad extends DraggableObject
 {
 	constructor(x, y)
@@ -496,6 +504,20 @@ class PumpkinZombie extends DraggableObject
 		this.stateTimer = 1000;
 		this.animations.getAnimation('idle').onLoop.add(this.animationLooped, this);
 		this.animations.getAnimation('walk').onLoop.add(this.animationLooped, this);
+		this.saladCounter = 0;
+	}
+	
+	eatSalad()
+	{
+		if (this.saladCounter < 4)
+			this.saladCounter += 1;
+		else
+		{
+			// change to PumpkinSalad
+			new PumpkinSalad(this.x, this.y);
+			game.state.getCurrentState().spawnPoof(this.x, this.y);
+			this.destroy();
+		}
 	}
 
 	animationLooped(sprite, anim)
@@ -623,6 +645,7 @@ class GameState extends Phaser.State
 		game.load.spritesheet("maggot", 'gfx/maggot.png', 32, 32);
 		game.load.spritesheet("pumpkin", 'gfx/pumpkin.png', 32, 32);
 		game.load.spritesheet("pumpkinzombie", 'gfx/pumpkin_zombie.png', 32, 32);
+		game.load.spritesheet("pumpkinsalad", 'gfx/pumpkin_salad.png', 32, 32);
 		game.load.spritesheet("seed", 'gfx/seed.png', 32, 32);
 		game.load.spritesheet('gore', 'gfx/gore.png', 16, 16);
 		game.load.spritesheet('poof', 'gfx/poof.png', 32, 32);
@@ -995,6 +1018,15 @@ class GameState extends Phaser.State
 				dragSprite.destroy();
 				sprite.animations.play('spawnsalad'); // creates salad obj after animation ended
 				sprite.canGet = false;
+				gs.spawnPoof(sprite.x, sprite.y);
+			}
+		}
+		else if ((sprite instanceof PumpkinZombie) && (dragSprite instanceof Salad))
+		{
+			return function(){
+				// TODO: EATING BAR
+				sprite.eatSalad();
+				dragSprite.destroy();
 				gs.spawnPoof(sprite.x, sprite.y);
 			}
 		}
