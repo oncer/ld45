@@ -182,7 +182,7 @@ class CorpseZombie extends StaticObject
 	
 	spawnTotem()
 	{		
-		new BirdTotem(this.x, this.y);
+		new BirdTotem(this.x, this.y, 'birdtotem');
 		this.destroy();
 		//game.state.getCurrentState().spawnPoof(this.x, this.y);
 	}
@@ -217,6 +217,7 @@ class BirdTotem extends StaticObject
 		this.eatTimer = 0;
 		this.seedTimer = 0;
 		this.canGet = false;
+		//this.transform = false;
 
 		if (type === 'birdtotemblood') {
 			this.eatTimer = 2000 + Math.random() * 1000;
@@ -1030,7 +1031,7 @@ class GameState extends Phaser.State
 				sprite.animations.play('spawntotem'); // creates birdtotem obj after animation ended
 				sprite.canGet = false;
 			}
-		} else if ((sprite instanceof BirdTotem) && !sprite.isEating() && sprite.canGet == true && (dragSprite instanceof Maggot)) {
+		} else if ((sprite instanceof BirdTotem) && !sprite.isEating() && sprite.canGet == true && sprite.transform == false && (dragSprite instanceof Maggot)) {
 			return function(){
 				sprite.eatMaggot(dragSprite);
 			}
@@ -1076,6 +1077,15 @@ class GameState extends Phaser.State
 			return function(){
 				// TODO: EATING BAR
 				sprite.eatSalad();
+				dragSprite.destroy();
+				gs.spawnPoof(sprite.x, sprite.y);
+			}
+		}
+		else if ((sprite instanceof BirdTotem) && sprite.transform == false && (dragSprite instanceof PumpkinSalad))
+		{
+			return function(){
+				new VampireBat(sprite.x, sprite.y);
+				sprite.destroy();
 				dragSprite.destroy();
 				gs.spawnPoof(sprite.x, sprite.y);
 			}
