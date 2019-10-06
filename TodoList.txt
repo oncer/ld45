@@ -3,8 +3,6 @@ Todo list:
 needs fixing:
 [?] drag-collisions / detection
 [ ] gore stuff flying out of cow corpses (fixed y-position, because if you slam it down really fast they spawn too far below)
-[ ] Birds should maybe dissapear when they dropped a seed? or other logic to not spam the level with birds
-[ ] vampire bats should only go on normal cows? yes, no?
 
 think about:
 [x] if you try to feed bird again while he's in eating animation: have to move back out and in again for it to be highlighted/possible to feed him again
@@ -18,15 +16,15 @@ crafting:
 [x] zombie-pumpkin: put seed onto zombie cow-corpse
 [x] big, green pumpkin: feed zombie pumpkin 5 salads
 
-[ ] bat (comes out of salad pumpkin) // OLD: (big, green pumpkin given to bird -> maybe bird eats it and transforms into bat?)
+[x] big, green pumpkin given to bird -> maybe bird eats it and transforms into bat?
 [x] pumpkin cow: feed normal pumpkin to a normal cow
 [x] pumpkin cow-corpse
 [x] vampire cow: put bat onto cow -> transforms (poof?)
-[ ] vampire cow-corpse
+[x] vampire cow-corpse
 [x] salad: put seed onto pumpkin cow-corpse
-[ ] tomatoes: put seed onto vampire cow-corpse
-[ ] blood-maggot: give a maggot a tomato
-[ ] triangle-seed: give bird 3 blood-maggots
+[x] tomatoes: put seed onto vampire cow-corpse
+[x] blood-maggot: give a maggot a tomato
+[x] triangle-seed: give bird 3 blood-maggots
 [ ] corn: give any cow-corpse a triangle-seed
 [ ] pumpkin-human-baby: give zombie pumpkin 2 corn
 [ ] human-like cow: give pumpkin-human-baby to normal? cow
@@ -43,10 +41,10 @@ graphics:
 [ ] finished vegan meal
 
 [x] zombie-pumpkin
-[ ] maybe: bat (missing: bite)
+[?] maybe: bat (missing: bite)
 
-[ ] maybe: zombie cow-gore? (red gore flies away, but the corpse is green)
-[ ] maybe: pumpkin cow-gore? (red gore flies away, but the corpse is orange)
+[?] maybe: zombie cow-gore? (red gore flies away, but the corpse is green)
+[?] maybe: pumpkin cow-gore? (red gore flies away, but the corpse is orange)
 [x] pumpkin cow
 [x] pumpkin cow-corpse
 [x] vampire cow
