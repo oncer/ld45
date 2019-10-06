@@ -397,7 +397,7 @@ class GameState extends Phaser.State
 		game.physics.p2.enable(this.bgCollision);
 		this.bgCollision.body.clearShapes();
 		// floor:
-		this.bgCollision.body.addRectangle(2048, 48, 0, 240 + 24);
+		this.bgCollision.body.addRectangle(2048, 96, 0, 288);
 		// ceil:
 		this.bgCollision.body.addRectangle(2048, 64, 0, 0 - 256);
 		this.bgCollision.body.static = true;
@@ -643,7 +643,8 @@ class GameState extends Phaser.State
 
 	setMousePointerBounds()
 	{
-		this.mouseBody.body.y = Math.min(this.mouseBody.body.y, this.maxMouseY);
+		// keep this commented out because of the other constraint bugs
+		//this.mouseBody.body.y = Math.min(this.mouseBody.body.y, this.maxMouseY);
 	}
 }
 
