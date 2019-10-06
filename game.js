@@ -190,7 +190,7 @@ class Pumpkin extends DraggableObject
 {
 	constructor(x, y)
 	{
-		super(x, y, 'pumpkin', 16, 16, 0, 0);
+		super(x, y, 'pumpkin', 20, 12, 0, 0);
 	}
 }
 
