@@ -61,6 +61,14 @@ class CorpseZombie extends StaticObject
 	}
 }
 
+class CorpsePumpkin extends StaticObject
+{
+	constructor(x, y)
+	{
+		super(x, y, 'corpsepumpkin', 32, 16, 0, 8);
+	}
+}
+
 class BirdTotem extends StaticObject
 {
 	constructor(x, y)
@@ -303,7 +311,9 @@ class Cow extends DraggableObject
 
 	deadlyImpact()
 	{
-		if (this.type === 'cowzombie') {
+		if (this.type === 'cowpumpkin') {
+			game.state.getCurrentState().spawnCorpsePumpkin(this);
+		} else if (this.type === 'cowzombie') {
 			game.state.getCurrentState().spawnCorpseZombie(this);
 		} else {
 			game.state.getCurrentState().spawnCorpse(this);
@@ -318,9 +328,11 @@ class GameState extends Phaser.State
 		game.load.image('bg', 'gfx/background.png');
 		game.load.image('bgfloor', 'gfx/background_floor.png');
 		game.load.spritesheet("cow", 'gfx/cow.png', 32, 32);
+		game.load.spritesheet("cowzombie", 'gfx/cow_zombie.png', 32, 32);
+		game.load.spritesheet("cowpumpkin", 'gfx/cow_pumpkin.png', 32, 32);
 		game.load.spritesheet("corpse", 'gfx/corpse.png', 32, 32);
 		game.load.spritesheet("corpsezombie", 'gfx/corpse_zombie.png', 32, 32);
-		game.load.spritesheet("cowzombie", 'gfx/cow_zombie.png', 32, 32);
+		game.load.spritesheet("corpsepumpkin", 'gfx/corpse_pumpkin.png', 32, 32);
 		game.load.spritesheet("maggot", 'gfx/maggot.png', 32, 32);
 		game.load.spritesheet("pumpkin", 'gfx/pumpkin.png', 32, 32);
 		game.load.spritesheet("seed", 'gfx/seed.png', 32, 32);
@@ -388,6 +400,19 @@ class GameState extends Phaser.State
 		this.spawnGoreParticles(obj.x, obj.y, -100, 100);
 		new CorpseZombie(obj.x, this.spawnObjY);
 		obj.destroy();
+	}
+	
+	spawnCorpsePumpkin(obj)
+	{
+		this.spawnGoreParticles(obj.x, obj.y, -100, 100);
+		new CorpsePumpkin(obj.x, this.spawnObjY);
+		obj.destroy();
+	}
+	
+	spawnCowPumpkin(x, y, direction)
+	{
+		var cow = new Cow(x, y, 'cowpumpkin');
+		cow.direction = direction;
 	}
 
 	spawnCowZombie(x, y, direction)
@@ -632,6 +657,15 @@ class GameState extends Phaser.State
 		{
 			return function(){				
 				new Pumpkin(sprite.x, sprite.y);
+				sprite.destroy();
+				dragSprite.destroy();
+				gs.spawnPoof(sprite.x, sprite.y);
+			}
+		}
+		else if ((sprite instanceof Cow) && sprite.type === 'cow' && (dragSprite instanceof Pumpkin))
+		{
+			return function(){
+				gs.spawnCowPumpkin(sprite.x, sprite.y, sprite.direction);
 				sprite.destroy();
 				dragSprite.destroy();
 				gs.spawnPoof(sprite.x, sprite.y);
