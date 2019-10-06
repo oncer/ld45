@@ -1,3 +1,8 @@
+const PumpkinZombieMaxSalads = 5;
+const CowMaxMaggots = 2;
+const BirdMaxMaggots = 4;
+const BirdMaxMaggotsBlood = 2;
+
 class Bar extends Phaser.Sprite
 {
 	constructor(target)
@@ -221,14 +226,14 @@ class BirdTotem extends StaticObject
 			this.canGet = true;
 			this.eatTimer = 2000 + Math.random() * 1000;
 			this.animations.play('eat');
-			this.maxMaggots = 2;
+			this.maxMaggots = BirdMaxMaggotsBlood;
 			this.bar.setPercent(this.maggotCount / this.maxMaggots);
 		} else {
 			this.canGet = false;
 			this.spawnAnim = this.animations.add('spawn', [10,11,12,13], 8, false);
 			this.spawnAnim.onComplete.add(this.spawnAnimEnd, this);
 			this.animations.play('spawn');
-			this.maxMaggots = 4;
+			this.maxMaggots = BirdMaxMaggots;
 		}
 	}
 	
@@ -475,6 +480,11 @@ class PumpkinSalad extends DraggableObject
 		this.transformAnim = this.animations.add('transform', [10,11,12,13], 10, false);
 		this.transformAnim.onComplete.add(this.transformAnimEnd, this);
 		this.animations.play('idle');
+		this.bar.percent = (PumpkinZombieMaxSalads - 1) / PumpkinZombieMaxSalads;
+		this.bar.percentTarget = 1;
+		this.bar.setVisible(true);
+		this.bar.setAlpha(1);
+		this.bar.hide();
 	}
 	
 	transformAnimEnd()
@@ -573,9 +583,9 @@ class PumpkinZombie extends DraggableObject
 	
 	eatSalad()
 	{
-		if (this.saladCounter < 4)
-			this.saladCounter += 1;
-		else
+		this.saladCounter++;
+		this.bar.setPercent(this.saladCounter / PumpkinZombieMaxSalads);
+		if (this.saladCounter >= PumpkinZombieMaxSalads)
 		{
 			// change to PumpkinSalad
 			new PumpkinSalad(this.x, this.y);
@@ -645,9 +655,8 @@ class Cow extends DraggableObject
 		this.setDirection(1); // right
 		this.stateTimer = 1000;
 		this.maggotCount = 0;
-		this.maxMaggots = 2;
 		if (type === 'cowzombie') {
-			this.bar.percent = 0.5; // for 1 out of 2 maggots
+			this.bar.percent = (CowMaxMaggots - 1) / CowMaxMaggots;
 			this.bar.targetPercent = 1;
 			this.bar.setVisible(true);
 			this.bar.setAlpha(1);
@@ -659,9 +668,9 @@ class Cow extends DraggableObject
 	{
 		obj.destroy();
 		this.maggotCount++;
-		this.bar.setPercent(this.maggotCount / this.maxMaggots);
+		this.bar.setPercent(this.maggotCount / CowMaxMaggots);
 		var gstate = game.state.getCurrentState();
-		if (this.maggotCount >= this.maxMaggots) {
+		if (this.maggotCount >= CowMaxMaggots) {
 			gstate.spawnCowZombie(this.x, this.y, this.direction);
 			this.destroy();
 		}
@@ -1121,7 +1130,6 @@ class GameState extends Phaser.State
 		else if ((sprite instanceof PumpkinZombie) && (dragSprite instanceof Salad))
 		{
 			return function(){
-				// TODO: EATING BAR
 				sprite.eatSalad();
 				dragSprite.destroy();
 				gs.spawnPoof(sprite.x, sprite.y);
