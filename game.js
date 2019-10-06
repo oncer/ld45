@@ -193,6 +193,8 @@ class Maggot extends DraggableObject
 		this.stateTimer = 1000;
 		this.animations.getAnimation('idle').onLoop.add(this.animationLooped, this);
 		this.animations.getAnimation('walk').onLoop.add(this.animationLooped, this);
+		
+		game.add.tween(this).to( { alpha: 1 }, 2000, Phaser.Easing.Linear.None, true, 0, 1000, true);
 	}
 
 	animationLooped(sprite, anim)
@@ -476,6 +478,8 @@ class GameState extends Phaser.State
 			}
 		}, this);*/
 
+		this.addDebugKeys();
+		
 		game.input.onDown.add(this.mouseClick, this);
 		game.input.addMoveCallback(this.mouseMove, this);
 		game.input.onUp.add(this.mouseRelease, this);
@@ -637,9 +641,42 @@ class GameState extends Phaser.State
 		var mouseX = game.input.activePointer.position.x / game.camera.scale.x;
 		var mouseY = game.input.activePointer.position.y / game.camera.scale.y;
 
-		this.setMousePointerBounds();
+		this.setMousePointerBounds();		
 	}
 
+	// Add debug spawns keys here!
+	addDebugKeys() {
+		game.input.keyboard.addKey(Phaser.Keyboard.ONE).onDown.add(function() {this.functionKey(0);}, this);
+		game.input.keyboard.addKey(Phaser.Keyboard.TWO).onDown.add(function() {this.functionKey(1);}, this);
+		game.input.keyboard.addKey(Phaser.Keyboard.THREE).onDown.add(function() {this.functionKey(2);}, this);
+		game.input.keyboard.addKey(Phaser.Keyboard.FOUR).onDown.add(function() {this.functionKey(3);}, this);
+		game.input.keyboard.addKey(Phaser.Keyboard.FIVE).onDown.add(function() {this.functionKey(4);}, this);
+	}
+	
+	// Add debug spawns here!
+	functionKey(type) {		
+		switch(type){
+			case 0:
+				new Maggot(this.mouseBody.x, this.mouseBody.y);
+				break;
+			case 1:
+				new Cow(this.mouseBody.x, this.mouseBody.y);
+				break;
+			case 2:
+				new Corpse(this.mouseBody.x, this.mouseBody.y);
+				break;
+			case 3:
+				new CorpseZombie(this.mouseBody.x, this.mouseBody.y);
+				break;				
+			case 4:
+				//new Maggot(this.mouseBody.x, this.mouseBody.y);
+				break;				
+			case 5:
+				//new Maggot(this.mouseBody.x, this.mouseBody.y);
+				break;
+		}
+	}
+	
 	render()
 	{
 		//game.debug.body(this.livingGroup);
