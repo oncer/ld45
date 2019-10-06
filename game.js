@@ -1,3 +1,4 @@
+const PumpkinMaxCorn = 2;
 const PumpkinZombieMaxSalads = 5;
 const CowMaxMaggots = 2;
 const BirdMaxMaggots = 4;
@@ -487,6 +488,41 @@ class Pumpkin extends DraggableObject
 	constructor(x, y)
 	{
 		super(x, y, 'pumpkin', 20, 12, 0, 0);
+		this.cornCounter = 0;
+	}
+
+	eatCorn()
+	{
+		this.cornCounter++;
+		this.bar.setPercent(this.cornCounter / PumpkinMaxCorn);
+		if (this.cornCounter >= PumpkinMaxCorn)
+		{
+			// change to Baby :O
+			new Baby(this.x, this.y);
+			game.state.getCurrentState().spawnPoof(this.x, this.y);
+			this.destroy();
+		}
+	}
+}
+
+class Corn extends DraggableObject
+{
+	constructor(x, y)
+	{
+		super(x, y, 'corn', 20, 20, 0, 0);
+	}
+}
+
+class Baby extends DraggableObject
+{
+	constructor(x, y)
+	{
+		super(x, y, 'baby', 20, 20, 0, 0);
+		this.bar.percent = (PumpkinMaxCorn - 1) / PumpkinMaxCorn;
+		this.bar.percentTarget = 1;
+		this.bar.setVisible(true);
+		this.bar.setAlpha(1);
+		this.bar.hide();
 	}
 }
 
@@ -598,7 +634,7 @@ class PumpkinZombie extends DraggableObject
 		this.animations.getAnimation('walk').onLoop.add(this.animationLooped, this);
 		this.saladCounter = 0;
 	}
-	
+
 	eatSalad()
 	{
 		this.saladCounter++;
@@ -773,6 +809,7 @@ class GameState extends Phaser.State
 		game.load.spritesheet("salad", 'gfx/salad.png', 32, 32);
 		game.load.spritesheet("vampirebat", 'gfx/bat.png', 32, 32);
 		game.load.spritesheet("tomato", 'gfx/tomato.png', 32, 32);
+		game.load.spritesheet("corn", 'gfx/corn.png', 32, 32);
 		
 		//game.load.spritesheet('propeller', 'gfx/propeller.png', 16, 64, 4);
 		game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
@@ -1257,6 +1294,7 @@ class GameState extends Phaser.State
 		game.input.keyboard.addKey(Phaser.Keyboard.SIX).onDown.add(function() {this.functionKey(5);}, this);
 		game.input.keyboard.addKey(Phaser.Keyboard.SEVEN).onDown.add(function() {this.functionKey(6);}, this);
 		game.input.keyboard.addKey(Phaser.Keyboard.EIGHT).onDown.add(function() {this.functionKey(7);}, this);
+		game.input.keyboard.addKey(Phaser.Keyboard.NINE).onDown.add(function() {this.functionKey(8);}, this);
 	}
 	
 	// Add debug spawns here!
@@ -1285,6 +1323,9 @@ class GameState extends Phaser.State
 				break;
 			case 7:
 				new PumpkinSalad(this.mouseBody.x, this.mouseBody.y);
+				break;
+			case 8:
+				new Corn(this.mouseBody.x, this.mouseBody.y);
 				break;
 		}
 	}
