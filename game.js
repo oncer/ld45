@@ -286,7 +286,7 @@ class CorpseCowhuman extends StaticObject
 	
 	spawnTree()
 	{
-		//new Avocado(this.x, this.y+10);
+		new Avocado(this.x, this.y);
 		//this.destroy();
 		this.animations.stop();
 	}
@@ -1272,7 +1272,7 @@ class GameState extends Phaser.State
 		}
 		else if ((sprite instanceof Corpse) && (dragSprite instanceof Seed))
 		{
-			return function(){				
+			return function(){
 				new Pumpkin(sprite.x, sprite.y);
 				sprite.destroy();
 				dragSprite.destroy();
