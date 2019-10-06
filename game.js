@@ -210,6 +210,24 @@ class CorpsePumpkin extends StaticObject
 	}
 }
 
+class CorpseVampire extends StaticObject
+{
+	constructor(x, y)
+	{
+		super(x, y, 'corpsevampire', 32, 16, 0, 8);
+		this.tomatoAnim = this.animations.add('spawntomato', [4,5,6,7], 1, false);
+		this.tomatoAnim.onComplete.add(this.spawnTomato, this);
+		this.animations.play('idle');
+		this.canGet = true;
+	}
+	
+	spawnTomato()
+	{
+		new Tomato(this.x, this.y+10);
+		this.destroy();
+	}
+}
+
 class BirdTotem extends StaticObject
 {
 	constructor(x, y, type)
@@ -712,7 +730,9 @@ class Cow extends DraggableObject
 
 	deadlyImpact()
 	{
-		if (this.type === 'cowpumpkin') {
+		if (this.type === 'cowvampire') {
+			game.state.getCurrentState().spawnCorpseVampire(this);
+		} else if (this.type === 'cowpumpkin') {
 			game.state.getCurrentState().spawnCorpsePumpkin(this);
 		} else if (this.type === 'cowzombie') {
 			game.state.getCurrentState().spawnCorpseZombie(this);
@@ -737,6 +757,7 @@ class GameState extends Phaser.State
 		game.load.spritesheet("corpse", 'gfx/corpse.png', 32, 32);
 		game.load.spritesheet("corpsezombie", 'gfx/corpse_zombie.png', 32, 32);
 		game.load.spritesheet("corpsepumpkin", 'gfx/corpse_pumpkin.png', 32, 32);
+		game.load.spritesheet("corpsevampire", 'gfx/corpse_vampire.png', 32, 32);
 		game.load.spritesheet("maggot", 'gfx/maggot.png', 32, 32);
 		game.load.spritesheet("maggotblood", 'gfx/maggot_blood.png', 32, 32);
 		game.load.spritesheet("pumpkin", 'gfx/pumpkin.png', 32, 32);
@@ -823,6 +844,13 @@ class GameState extends Phaser.State
 	{
 		this.spawnGoreParticles(obj.x, obj.y, -100, 100);
 		new CorpsePumpkin(obj.x, this.spawnObjY);
+		obj.destroy();
+	}
+	
+	spawnCorpseVampire(obj)
+	{
+		this.spawnGoreParticles(obj.x, obj.y, -100, 100);
+		new CorpseVampire(obj.x, this.spawnObjY);
 		obj.destroy();
 	}
 	
@@ -1159,6 +1187,15 @@ class GameState extends Phaser.State
 				gs.spawnMaggotBlood(sprite);
 				sprite.destroy();
 				dragSprite.destroy();
+				gs.spawnPoof(sprite.x, sprite.y);
+			}
+		}
+		else if ((sprite instanceof CorpseVampire) && sprite.canGet == true && (dragSprite instanceof Seed))
+		{
+			return function(){
+				dragSprite.destroy();
+				sprite.animations.play('spawntomato'); // creates tomato obj after animation ended
+				sprite.canGet = false;
 				gs.spawnPoof(sprite.x, sprite.y);
 			}
 		}
