@@ -289,7 +289,8 @@ class VampireBat extends StaticObject
 		var gstate = game.state.getCurrentState();
 		var cows = [];
 		for (let obj of gstate.livingGroup.children) {
-			if (obj instanceof Cow && obj.type === 'cow') {
+			if (obj instanceof Cow && obj.type === 'cow'
+					&& obj.x > 32 && obj.y < game.world.width - 32) {
 				cows.push(obj);
 			}
 		}
@@ -326,13 +327,26 @@ class VampireBat extends StaticObject
 			this.body.velocity.x = 50 * Math.sin(game.time.now / 500);
 			if (this.x > this.cow.x) this.body.velocity.x -= 100;
 			if (this.x < this.cow.x) this.body.velocity.x += 100;
-			if (Math.abs(this.x - this.cow.x) > 32 && this.y > 100) {
+			if (Math.abs(this.x - this.cow.x) > 32 && this.y > 150) {
 				this.body.velocity.y = -100;
+			} else {
+				if (this.y > this.cow.y) {
+					this.body.velocity.y = -100;
+				}
 			}
 			if (Phaser.Math.distance(this.x, this.y, this.cow.x, this.cow.y) < 16) {
 				var cowVampire = new Cow(this.cow.x, this.cow.y, 'cowvampire');
 				cowVampire.setDirection(this.cow.direction);
-				game.state.getCurrentState().spawnPoofBlood(this.x, this.y);
+				var gstate = game.state.getCurrentState();
+				gstate.spawnPoofBlood(this.x, this.y);
+				if (gstate.draggedBody && gstate.draggedBody.parent.sprite === this.cow) {
+					console.log("dragged cow vampire");
+					gstate.draggedBody = undefined;
+					if (gstate.mouseSpring !== undefined) {
+						game.physics.p2.removeConstraint(gstate.mouseSpring);
+						gstate.mouseSpring = undefined;
+					}
+				}
 				this.cow.destroy();
 				this.destroy();
 			}
@@ -801,7 +815,6 @@ class GameState extends Phaser.State
 		
 		// spawn the first cow
 		this.spawnCow(128, 240 - 10);
-		new VampireBat(256, 240 - 16);
 
 		game.world.setBounds(0, 0, 512, 864);
 		game.camera.scale.setTo(2);
@@ -949,6 +962,7 @@ class GameState extends Phaser.State
 		this.dragContactFn = undefined;
 		if (!this.draggedBody) return;
 		var dragSprite = this.draggedBody.parent.sprite;
+		if (!dragSprite) return;
 		for (let sprite of this.dragContactSprites.values()) {
 			var fn = this.getDragCombineFn(sprite, dragSprite);
 			if (fn) {
