@@ -14,12 +14,12 @@ think about:
 crafting:
 [x] pumpkin: put seed onto fresh normal cow-corpse
 [x] zombie-pumpkin: put seed onto zombie cow-corpse
-[ ] big, green pumpkin: feed zombie pumpkin 5 salads
+[x] big, green pumpkin: feed zombie pumpkin 5 salads
 
 [ ] bat (comes out of salad pumpkin) // OLD: (big, green pumpkin given to bird -> maybe bird eats it and transforms into bat?)
 [x] pumpkin cow: feed normal pumpkin to a normal cow
 [x] pumpkin cow-corpse
-[ ] vampire cow: put bat onto cow -> transforms (poof?)
+[x] vampire cow: put bat onto cow -> transforms (poof?)
 [ ] vampire cow-corpse
 [x] salad: put seed onto pumpkin cow-corpse
 [ ] tomatoes: put seed onto vampire cow-corpse
