@@ -46,8 +46,8 @@ class Corpse extends StaticObject
 
 	decay()
 	{
-		new Maggot(this.x, this.y);
-		game.state.getCurrentState().spawnPoof(this.x, this.y);
+		game.state.getCurrentState().spawnMaggot(this);
+		//game.state.getCurrentState().spawnPoof(this.x, this.y);
 		this.decayed = true;
 	}
 }
@@ -357,6 +357,11 @@ class GameState extends Phaser.State
 		});
 		//anim.play(15);
 		anim.play(20);
+	}
+		
+	spawnMaggot(obj)
+	{
+		new Maggot(obj.x, this.spawnObjY + 16);
 	}
 	
 	spawnCorpse(obj)
