@@ -4,8 +4,8 @@ class Bar extends Phaser.Sprite
 	{
 		super(game, 0, 0);
 		this.target = target;
-		this.bg = target.addChild(game.make.sprite(target.width/2 - 32, -24, 'bar_bg'));
-		this.fg = target.addChild(game.make.sprite(target.width/2 - 32 + 2, -22, 'bar_fg'));
+		this.bg = target.addChild(game.make.sprite(target.width/2 - 32, - 26, 'bar_bg'));
+		this.fg = target.addChild(game.make.sprite(target.width/2 - 32 + 2, -24, 'bar_fg'));
 		this.barWidth = this.fg.width;
 		this.barHeight = this.fg.height;
 		this.setVisible(false);
@@ -30,14 +30,15 @@ class Bar extends Phaser.Sprite
 	{
 		this.fg.scale.x = this.target.scale.x;
 
-		if (this.hideCountdown <= 0 && this.alpha == 1) {
+		if (this.visible) {
 			var delta = game.time.elapsed / 2000;
-			if (this.percent < this.targetPercent)
+			var tp = this.targetPercent > 0 ? this.targetPercent : 1;
+			if (this.percent < tp)
 			{
-				this.percent = Math.min(this.percent + delta, this.targetPercent);
-			} else if (this.percent > this.targetPercent)
+				this.percent = Math.min(this.percent + delta, tp);
+			} else if (this.percent > tp)
 			{
-				this.percent = Math.max(this.percent - delta, this.targetPercent);
+				this.percent = Math.max(this.percent - delta, tp);
 			}
 		}
 
@@ -58,13 +59,14 @@ class Bar extends Phaser.Sprite
 		} else if (this.visible && this.alpha < 1) {
 			this.setAlpha(Math.min(1, this.alpha + game.time.elapsed / 1000));
 		}
-
 	}
 
 	setPercent(percent)
 	{
 		this.targetPercent = percent;
-		if (this.targetPercent > 0) {
+		if (percent == 0) {
+			this.hide();
+		} else if (!this.visible && this.targetPercent > 0) {
 			this.show();
 		}
 	}
@@ -797,12 +799,7 @@ class GameState extends Phaser.State
 	{
 		var sprite = body.sprite;
 		var dragSprite = this.draggedBody.parent.sprite;
-		var fn = this.getDragCombineFn(sprite, dragSprite);
-		if (fn) {
-			dragSprite.animations.play('highlight');
-			this.dragContactSprites.add(sprite);
-			this.dragContactFn = fn;
-		}
+		this.dragContactSprites.add(sprite);
 	}
 
 	dragContactEnd(body, bodyB, shapeA, shapeB)
@@ -816,6 +813,24 @@ class GameState extends Phaser.State
 			dragSprite.animations.play('drag');
 			this.dragContactSprite = undefined;
 			this.dragContactFn = undefined;
+		}
+	}
+
+	updateDragCombines()
+	{
+		this.dragContactFn = undefined;
+		if (!this.draggedBody) return;
+		var dragSprite = this.draggedBody.parent.sprite;
+		for (let sprite of this.dragContactSprites.values()) {
+			var fn = this.getDragCombineFn(sprite, dragSprite);
+			if (fn) {
+				this.dragContactFn = fn;
+			}
+		}
+		if (this.dragContactFn) {
+			dragSprite.animations.play('highlight');
+		} else {
+			dragSprite.animations.play('drag');
 		}
 	}
 
@@ -914,6 +929,8 @@ class GameState extends Phaser.State
 				this.cowtimer = 4000 + Math.random() * 2000;
 			}
 		}
+
+		this.updateDragCombines();
 
 		var mouseX = game.input.activePointer.position.x / game.camera.scale.x;
 		var mouseY = game.input.activePointer.position.y / game.camera.scale.y;
