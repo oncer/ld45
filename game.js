@@ -264,6 +264,8 @@ class Maggot extends DraggableObject
 	}
 }
 
+////// pumpkin zombie (copy maggot, but change a bit)
+
 class Cow extends DraggableObject
 {
 	constructor(x, y, type)
@@ -335,6 +337,7 @@ class GameState extends Phaser.State
 		game.load.spritesheet("corpsepumpkin", 'gfx/corpse_pumpkin.png', 32, 32);
 		game.load.spritesheet("maggot", 'gfx/maggot.png', 32, 32);
 		game.load.spritesheet("pumpkin", 'gfx/pumpkin.png', 32, 32);
+		game.load.spritesheet("pumpkinzombie", 'gfx/pumpkin_zombie.png', 32, 32);
 		game.load.spritesheet("seed", 'gfx/seed.png', 32, 32);
 		game.load.spritesheet('gore', 'gfx/gore.png', 16, 16);
 		game.load.spritesheet('poof', 'gfx/poof.png', 32, 32);
