@@ -207,19 +207,28 @@ class CorpsePumpkin extends StaticObject
 
 class BirdTotem extends StaticObject
 {
-	constructor(x, y)
+	constructor(x, y, type)
 	{
-		super(x, y, 'birdtotem', 32, 32, 0, 0);
+		super(x, y, type, 32, 32, 0, 0);
+		this.type = type;
 		this.maggotCount = 0;
 		this.setDirection(Math.random() < 0.5 ? -1 : 1);
 		this.animations.add('eat', [4,5,6,7], 8, true);
-		this.spawnAnim = this.animations.add('spawn', [10,11,12,13], 8, false);
-		this.spawnAnim.onComplete.add(this.spawnAnimEnd, this);
-		this.animations.play('spawn');
 		this.eatTimer = 0;
 		this.seedTimer = 0;
-		this.maxMaggots = 10;
 		this.canGet = false;
+
+		if (type === 'birdtotemblood') {
+			this.eatTimer = 2000 + Math.random() * 1000;
+			this.animations.play('eat');
+			this.maxMaggots = 3;
+			this.bar.setPercent(this.maggotCount / this.maxMaggots);
+		} else {
+			this.spawnAnim = this.animations.add('spawn', [10,11,12,13], 8, false);
+			this.spawnAnim.onComplete.add(this.spawnAnimEnd, this);
+			this.animations.play('spawn');
+			this.maxMaggots = 10;
+		}
 	}
 	
 	spawnAnimEnd()
@@ -255,7 +264,11 @@ class BirdTotem extends StaticObject
 			if (this.seedTimer <= 0) {
 				var x = this.x + 20 * this.direction;
 				var y = this.y;
-				new Seed(x, y);
+				if (this.type === 'birdtotem') {
+					new Seed(x, y);
+				} else if (this.type === 'birdtotemblood') {
+					new SeedTriangle(x, y);
+				}
 				game.state.getCurrentState().spawnPoof(x, y);
 			}
 		}
@@ -264,8 +277,15 @@ class BirdTotem extends StaticObject
 	eatMaggot(obj)
 	{
 		obj.destroy();
-		this.eatTimer = 2000 + Math.random() * 1000;
-		this.animations.play('eat');
+		if (this.type === 'birdtotem' && obj.type === 'maggotblood') {
+			// bird totem turns into blood totem
+			new BirdTotem(this.x, this.y, 'birdtotemblood');
+			game.state.getCurrentState().spawnPoof(this.x, this.y);
+			this.destroy();
+		} else {
+			this.eatTimer = 2000 + Math.random() * 1000;
+			this.animations.play('eat');
+		}
 	}
 }
 
@@ -422,6 +442,14 @@ class Seed extends DraggableObject
 	}
 }
 
+class SeedTriangle extends DraggableObject
+{
+	constructor(x, y)
+	{
+		super(x, y, 'seedtriangle', 18, 18, 0, 0);
+	}
+}
+
 class Pumpkin extends DraggableObject
 {
 	constructor(x, y)
@@ -448,9 +476,10 @@ class Salad extends DraggableObject
 
 class Maggot extends DraggableObject
 {
-	constructor(x, y)
+	constructor(x, y, type)
 	{
-		super(x, y, 'maggot', 20, 10, 0, 0);
+		super(x, y, type, 20, 10, 0, 0);
+		this.type = type;
 		this.state = 0; // wait
 		this.setDirection(1); // right
 		this.stateTimer = 1000;
@@ -661,10 +690,12 @@ class GameState extends Phaser.State
 		game.load.spritesheet("pumpkinzombie", 'gfx/pumpkin_zombie.png', 32, 32);
 		game.load.spritesheet("pumpkinsalad", 'gfx/pumpkin_salad.png', 32, 32);
 		game.load.spritesheet("seed", 'gfx/seed.png', 32, 32);
+		game.load.spritesheet("seedtriangle", 'gfx/seed_triangle.png', 32, 32);
 		game.load.spritesheet('gore', 'gfx/gore.png', 16, 16);
 		game.load.spritesheet('poof', 'gfx/poof.png', 32, 32);
 		game.load.spritesheet('poofblood', 'gfx/poof_blood.png', 32, 32);
 		game.load.spritesheet('birdtotem', 'gfx/bird_totem.png', 32, 32);
+		game.load.spritesheet('birdtotemblood', 'gfx/bird_totem_blood.png', 32, 32);
 		game.load.spritesheet("salad", 'gfx/salad.png', 32, 32);
 		game.load.spritesheet("vampirebat", 'gfx/bat.png', 32, 32);
 		
@@ -711,7 +742,12 @@ class GameState extends Phaser.State
 		
 	spawnMaggot(obj)
 	{
-		new Maggot(obj.x, this.spawnObjY + 16);
+		new Maggot(obj.x, this.spawnObjY + 16, 'maggot');
+	}
+
+	spawnMaggotBlood(obj)
+	{
+		new Maggot(obj.x, this.spawnObjY + 16, 'maggotblood');
 	}
 	
 	spawnCorpse(obj)
@@ -1103,7 +1139,7 @@ class GameState extends Phaser.State
 	functionKey(type) {
 		switch(type){
 			case 0:
-				new Maggot(this.mouseBody.x, this.mouseBody.y);
+				new Maggot(this.mouseBody.x, this.mouseBody.y, 'maggot');
 				break;
 			case 1:
 				new Cow(this.mouseBody.x, this.mouseBody.y, 'cow');
