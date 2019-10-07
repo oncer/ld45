@@ -60,7 +60,7 @@ sounds:
 //[ ] vampire cow moo
 //[ ] human cow moo
 [x] poof
-[ ] maggot appear
+[x] appear (for maggots and every other crop that spawns automatically)
 [ ] bird totem appear + crow sound
 [ ] bird eat maggot
 [ ] cow zombie transform
