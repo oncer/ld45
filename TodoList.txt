@@ -53,6 +53,23 @@ graphics:
 [x] human-like cow
 [x] human-like cow corpse
 
+sounds:
+[ ] cow splatter (cow turns into corpse)
+[ ] cow moo (when you pick it up)
+[ ] zombie cow moo
+[ ] vampire cow moo
+[ ] human cow moo
+[ ] poof
+[ ] maggot appear
+[ ] bird totem appear + crow sound
+[ ] bird eat maggot
+[ ] cow zombie transform
+[ ] funnel activation
+[ ] bat transformation
+[ ] bat cry, when it goes after cow
+
+[ ] 
+
 other stuff:
 [ ] sounds / music
 [ ] label with crafted items somewhere (on the top of the screen)?
@@ -60,3 +77,6 @@ other stuff:
 [ ] at the end of funnel (all things filled): big plate with finished meal (64x64)?
 [ ] ending sequence
 [ ] maybe: title screen (before starting game; maybe text that tells you how to control the game (touch controls/the mouse))
+
+bugs:
+[ ] funnel bar should charge up with a slight delay
