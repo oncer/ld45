@@ -62,14 +62,14 @@ sounds:
 [x] poof -> poof.ogg
 [x] appear (for maggots and every other crop that spawns automatically)
 [x] bird totem appear + crow sound -> only crow sound -> crow.ogg
-[ ] bird eat maggot -> eat.ogg
+[x] bird eat maggot -> eat.ogg
 [x] cow zombie transform -> cow_to_zombie.ogg
-[ ] funnel activation
+[x] funnel activation -> use joy.ogg
 [ ] bat transformation
-[ ] bat cry, when it goes after cow
-[ ] corn grow (some kind of fanfare)
+[x] bat cry, when it goes after cow -> use cow_to_zombie.ogg
+[x] corn grow (some kind of fanfare) -> use appear.ogg
 [ ] baby sounds
-[ ] brutal splatter (human cow turns into human corpse)
+[x] brutal splatter (human cow turns into human corpse) -> cow_corspe
 [ ] avocado grow (even cooler fanfare)
 
 other stuff:
