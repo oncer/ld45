@@ -84,3 +84,4 @@ bugs:
 [x] side colliders for everything but cow
 [x] prevent charged pumpkin being fed to cow
 [x] funnel bar should charge up with a slight delay
+[ ] mouse out of window -> crash

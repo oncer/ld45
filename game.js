@@ -1264,6 +1264,12 @@ class GameState extends Phaser.State
 		this.debugText.anchor.set(0.5);
 		this.debugText.exists = false;
 
+		// this should prevent some bugs with mouse focus
+		game.input.mouse.mouseOutCallback = function(context) {
+			var gs = game.state.getCurrentState();
+			gs.mouseRelease(null);
+		}
+
 		game.camera.flash('#000000');
 	}
 
