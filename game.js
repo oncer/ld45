@@ -558,7 +558,10 @@ class DraggableObject extends InteractiveObject
 		gstate.livingGroup.add(this);
 		this.body.collides(gstate.bgCG, gstate.draggableCollides, gstate);
 		this.body.collides(gstate.draggedCG);
-		//this.body.collides(gstate.bgSidesCG);
+		if (sprite !== 'cow') {
+			// cow should never collide with sides
+			this.body.collides(gstate.bgSidesCG);
+		}
 		this.body.angularDamping = 0.995;
 
 		//this.body.addRectangle(32, 32, 0, 0);
@@ -1159,7 +1162,6 @@ class GameState extends Phaser.State
 		this.funnel = new Funnel(48 + 16, 240 - 72);
 		
 		// sides:
-		/*
 		this.bgCollisionSides = game.add.sprite(0, 0);
 		game.physics.p2.enable(this.bgCollisionSides);
 		this.bgCollisionSides.body.clearShapes();
@@ -1170,7 +1172,6 @@ class GameState extends Phaser.State
 		this.bgCollisionSides.body.collides(this.livingCG);
 		this.bgSidesCG = game.physics.p2.createCollisionGroup();
 		this.bgCollisionSides.body.setCollisionGroup(this.bgSidesCG);
-		*/
 		
 		// spawn the first cow
 		this.spawnCow(128, 240 - 10);
