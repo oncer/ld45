@@ -6,6 +6,7 @@ const BirdMaxMaggotsBlood = 2;
 const FunnelMaxSalad = 3;
 const FunnelMaxTomato = 2;
 const FunnelMaxAvocado = 1;
+const MaxCowsOnScreen = 4;
 
 /*
 class StorySprite extends Phaser.Sprite
@@ -37,18 +38,46 @@ class StorySprite extends Phaser.Sprite
 }
 */
 
-class Outro extends Phaser.Group
+class Scene extends Phaser.Sprite
 {
-	constructor()
+	// idx 0=intro 1=outro
+	constructor(idx)
 	{
-		super(game);
-		game.add.existing(this);
-		this.create(0, 0, "outro1");
+		super(game, 0, 0, "scene", idx);
 	}
 
-	update()
+	dropout(easing, fn, ctx)
 	{
-		super.update();
+		var tween = game.add.tween(this).to( { y: 288 }, 1000, easing, true);
+		if (fn) {
+			tween.onComplete.add(fn, ctx);
+		}
+	}
+
+	dropin(easing, fn, ctx)
+	{
+		this.y = -288;
+		var tween = game.add.tween(this).to( { y: 0 }, 1000, easing, true);
+		if (fn) {
+			tween.onComplete.add(fn, ctx);
+		}
+	}
+
+	fadein(easing, fn, ctx)
+	{
+		this.alpha = 0;
+		var tween = game.add.tween(this).to( { alpha: 1 }, 1000, easing, true);
+		if (fn) {
+			tween.onComplete.add(fn, ctx);
+		}
+	}
+
+	fadeout(easing, fn, ctx)
+	{
+		var tween = game.add.tween(this).to( { alpha: 0 }, 1000, easing, true);
+		if (fn) {
+			tween.onComplete.add(fn, ctx);
+		}
 	}
 }
 
@@ -256,8 +285,8 @@ class StaticObject extends InteractiveObject
 		var gstate = game.state.getCurrentState();
 		this.body.cg = gstate.staticCG;
 		this.body.setCollisionGroup(this.body.cg);
-		if (sprite === 'vampirebat') {
-			gstate.livingGroup.add(this); // exception for vampirebat
+		if (sprite === 'vampirebat' || sprite === 'saladbowl') {
+			gstate.livingGroup.add(this); // exception for vampirebat/saladbowl so it can be displayed on top
 		} else {
 			gstate.staticGroup.add(this);
 		}
@@ -298,7 +327,8 @@ class Funnel extends StaticObject
 			if (this.winTimer <= 0) {
 				this.winTriggered = true;
 				var gs = game.state.getCurrentState();
-				new SaladBowl(this.x, gs.spawnObjY);
+				var bowl = new SaladBowl(this.x, gs.spawnObjY);
+				bowl.bringToTop();
 				gs.spawnPoof(this.x, gs.spawnObjY - 8, false);
 				gs.startOutro();
 			}
@@ -725,11 +755,11 @@ class Avocado extends DraggableObject
 	}
 }
 
-class SaladBowl extends DraggableObject
+class SaladBowl extends StaticObject
 {
 	constructor(x, y)
 	{
-		super(x, y, 'saladbowl', 40, 30, 0, 0);
+		super(x, y, 'saladbowl', 30, 24, 0, 0);
 	}
 }
 
@@ -1212,7 +1242,7 @@ class GameState extends Phaser.State
 		game.load.spritesheet("baby", "gfx/baby.png", 32, 32);
 		game.load.spritesheet("avocado", "gfx/avocado.png", 32, 32);
 		game.load.spritesheet("funnel", "gfx/funnel.png", 96, 144);
-		game.load.spritesheet("saladbowl", "gfx/saladbowl.png", 48, 48);
+		game.load.spritesheet("saladbowl", "gfx/saladbowl.png", 32, 32);
 
 
 		game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
@@ -1227,7 +1257,8 @@ class GameState extends Phaser.State
 		game.load.audio('joySfx', 'sfx/joy.ogg');
 		game.load.audio('pickupSfx', 'sfx/pickup.ogg');
 
-		game.load.image('outro1', 'gfx/outro1.png');
+		//game.load.image('outro1', 'gfx/outro1.png');
+		game.load.spritesheet('scene', 'gfx/scene.png', 512, 288);
 	}
 
 	create ()
@@ -1245,7 +1276,6 @@ class GameState extends Phaser.State
 		this.spawnObjY = 224;
 
 		this.music = game.add.audio('music');
-		this.music.play('', 0, 1, true);
 		this.appearSfx = game.add.audio('appearSfx');
 		this.mooSfx = game.add.audio('mooSfx');
 		this.splashSfx = game.add.audio('splashSfx');
@@ -1265,6 +1295,10 @@ class GameState extends Phaser.State
 
 		this.bg = game.add.sprite(0, 0, 'bg');
 		this.bgfloor = game.add.sprite(0, 0, 'bgfloor');
+		
+		this.outroText = new Scene(3);
+		this.outroText.visible = false;
+		game.add.existing(this.outroText);
 
 		this.staticCG = game.physics.p2.createCollisionGroup();
 		this.staticGroup = game.add.group();
@@ -1356,10 +1390,14 @@ class GameState extends Phaser.State
 		}
 
 
-		this.interactive = true;
+		this.interactive = false;
 		//this.interactive = false;
 		//this.story1 = new StorySprite(1, 'storygirl', "Dad! I'm a vegan now!");
 		//game.add.existing(this.story1);
+
+		this.introScene = new Scene(0);
+		game.add.existing(this.introScene);
+		this.outroScene = undefined;
 
 
 		game.camera.flash('#000000');
@@ -1367,7 +1405,29 @@ class GameState extends Phaser.State
 
 	mouseClick(pointer)
 	{
-		if (!this.interactive) return;
+		if (!this.interactive) {
+			if (this.introScene) {
+				var intro = this.introScene;
+				intro.dropout(Phaser.Easing.Back.In, function(){
+					intro.destroy();
+					this.interactive = true;
+					this.music.play('', 0, 1, true);
+				}, this);
+				this.introScene = undefined;
+			}
+			if (this.outroScene1 && this.outroBG && this.outroBG.alpha == 1) {
+				var outro = this.outroScene1;
+				this.outroBG.fadeout(Phaser.Easing.Linear.None);
+				outro.dropout(Phaser.Easing.Back.In, function() {
+					outro.destroy();
+					this.interactive = true;
+					this.music.play('', 0, 1, true);
+				}, this);
+				this.outroScene1 = undefined;
+				this.outroText.visible = true;
+			}
+			return;
+		}
 
 		this.setMousePointerBounds();
 
@@ -1645,7 +1705,7 @@ class GameState extends Phaser.State
 		this.T = game.time.now/1000;
 
 		// cowtimer
-		if (this.cowtimer>0) {
+		if (this.interactive && this.cowtimer>0) {
 			this.cowtimer -= game.time.elapsed;
 			if (this.cowtimer<=0) {
 				var cowcounter=0;
@@ -1656,7 +1716,7 @@ class GameState extends Phaser.State
 				}
 				);
 
-				if (cowcounter<3) {
+				if (cowcounter<MaxCowsOnScreen) {
 					if (Math.random() < 0.5) {
 						this.spawnCow(-40, 240 - 16);
 					} else {
@@ -1664,7 +1724,7 @@ class GameState extends Phaser.State
 					}
 				}
 
-				this.cowtimer = 4000 + Math.random() * 2000;
+				this.cowtimer = 2000 + Math.random() * 1000;
 			}
 		}
 
@@ -1680,10 +1740,18 @@ class GameState extends Phaser.State
 
 	startOutro()
 	{
+		//console.log("start outro");
 		this.interactive = false;
 		this.joySfx.play();
-		game.time.events.add(Phaser.Timer.SECOND*5, function(){
-			new Outro();
+		game.time.events.add(Phaser.Timer.SECOND*3, function(){
+			//console.log("make outro scene");
+			this.music.stop();
+			this.outroBG = new Scene(2);
+			this.outroBG.fadein(Phaser.Easing.Linear.None);
+			this.outroScene1 = new Scene(1);
+			this.outroScene1.dropin(Phaser.Easing.Back.Out);
+			game.add.existing(this.outroBG);
+			game.add.existing(this.outroScene1);
 		}, this);
 	}
 
