@@ -670,6 +670,7 @@ class VampireBat extends StaticObject
 				var gstate = game.state.getCurrentState();
 				gstate.spawnCowVampire(this.cow.x, this.cow.y, this.cow.direction);
 				gstate.spawnPoofBlood(this.x, this.y);
+				gstate.cowToZombieSfx.play();
 				if (gstate.draggedBody && gstate.draggedBody.parent.sprite === this.cow) {
 					console.log("dragged cow vampire");
 					gstate.draggedBody = undefined;
