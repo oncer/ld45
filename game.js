@@ -37,6 +37,21 @@ class StorySprite extends Phaser.Sprite
 }
 */
 
+class Outro extends Phaser.Group
+{
+	constructor()
+	{
+		super(game);
+		game.add.existing(this);
+		this.create(0, 0, "outro1");
+	}
+
+	update()
+	{
+		super.update();
+	}
+}
+
 class FunnelBar extends Phaser.Sprite
 {
 	constructor(target, xoff, yoff)
@@ -1211,7 +1226,7 @@ class GameState extends Phaser.State
 		game.load.audio('joySfx', 'sfx/joy.ogg');
 		game.load.audio('pickupSfx', 'sfx/pickup.ogg');
 
-		//game.load.image('storygirl', 'gfx/storygirl.png');
+		game.load.image('outro1', 'gfx/outro1.png');
 	}
 
 	create ()
@@ -1610,7 +1625,8 @@ class GameState extends Phaser.State
 					((dragSprite instanceof Avocado) && sprite.avocadoCount < FunnelMaxAvocado))) {
 			return function(){
 				sprite.eatVegetable(dragSprite);
-				gs.spawnPoof(dragSprite.x, dragSprite.y - 8, true);
+				gs.spawnPoof(dragSprite.x, dragSprite.y - 8, false);
+				gs.joySfx.play();
 				dragSprite.destroy();
 			}
 		}
@@ -1664,8 +1680,10 @@ class GameState extends Phaser.State
 	startOutro()
 	{
 		this.interactive = false;
-		this.outroTimer = 2000;
 		this.joySfx.play();
+		game.time.events.add(Phaser.Timer.SECOND*5, function(){
+			new Outro();
+		}, this);
 	}
 
 	// Add debug spawns keys here!
@@ -1724,7 +1742,7 @@ class GameState extends Phaser.State
 		//game.debug.body(this.livingGroup);
 		//game.debug.body(this.bgCollision);
 		
-		game.world.bringToTop(this.bgfloor);		
+		if (this.interactive) game.world.bringToTop(this.bgfloor);		
 
 		if (this.debugText.exists) {
 			this.debugText.bringToTop();
