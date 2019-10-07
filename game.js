@@ -617,7 +617,7 @@ class DraggableObject extends InteractiveObject
 
 	pickupSound()
 	{
-		// nothing
+		game.state.getCurrentState().pickupSfx.play();
 	}
 
 	deadlyImpact()
@@ -1027,6 +1027,7 @@ class GameState extends Phaser.State
 		game.load.audio('crowSfx', 'sfx/crow.ogg');
 		game.load.audio('eatSfx', 'sfx/eat.ogg');
 		game.load.audio('poofSfx', 'sfx/poof.ogg');
+		game.load.audio('pickupSfx', 'sfx/pickup.ogg');
 	}
 
 	spawnGoreParticles(x, y, minVelX, maxVelX, amount)
@@ -1156,7 +1157,7 @@ class GameState extends Phaser.State
 		this.spawnObjY = 224;
 
 		this.music = game.add.audio('music');
-		this.music.play();
+		this.music.play('', 0, 1, true);
 		this.appearSfx = game.add.audio('appearSfx');
 		this.mooSfx = game.add.audio('mooSfx');
 		this.splashSfx = game.add.audio('splashSfx');
@@ -1164,6 +1165,7 @@ class GameState extends Phaser.State
 		this.crowSfx = game.add.audio('crowSfx');
 		this.eatSfx = game.add.audio('eatSfx');
 		this.poofSfx = game.add.audio('poofSfx');
+		this.pickupSfx = game.add.audio('pickupSfx');
 	
 		// game physics
 		game.physics.startSystem(Phaser.Physics.P2JS);
