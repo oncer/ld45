@@ -713,7 +713,7 @@ class SaladBowl extends DraggableObject
 {
 	constructor(x, y)
 	{
-		super(x, y, 'saladbowl', 40, 30, 0, 0);
+		super(x, y, 'saladbowl', 28, 20, 0, 0);
 	}
 }
 
@@ -1196,7 +1196,7 @@ class GameState extends Phaser.State
 		game.load.spritesheet("baby", "gfx/baby.png", 32, 32);
 		game.load.spritesheet("avocado", "gfx/avocado.png", 32, 32);
 		game.load.spritesheet("funnel", "gfx/funnel.png", 96, 144);
-		game.load.spritesheet("saladbowl", "gfx/saladbowl.png", 48, 48);
+		game.load.spritesheet("saladbowl", "gfx/saladbowl.png", 32, 32);
 
 		
 		game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
