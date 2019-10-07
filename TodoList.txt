@@ -67,8 +67,10 @@ sounds:
 [ ] funnel activation
 [ ] bat transformation
 [ ] bat cry, when it goes after cow
-
-[ ] 
+[ ] corn grow (some kind of fanfare)
+[ ] baby sounds
+[ ] brutal splatter (human cow turns into human corpse)
+[ ] avocado grow (even cooler fanfare)
 
 other stuff:
 [ ] sounds / music
@@ -79,4 +81,7 @@ other stuff:
 [ ] maybe: title screen (before starting game; maybe text that tells you how to control the game (touch controls/the mouse))
 
 bugs:
+[ ] side colliders for everything but cow
+[ ] slow down vertical speed when throwing cows
+[ ] prevent charged pumpkin being fed to cow
 [ ] funnel bar should charge up with a slight delay
