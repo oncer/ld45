@@ -240,11 +240,27 @@ class Funnel extends StaticObject
 		this.avocadoBar = game.add.existing(new FunnelBar(this, 10, 18));
 		this.animations.getAnimation('idle').onLoop.add(this.animationLooped, this);
 		this.funnelCountdown = 0;
+		this.funnelObjs = [];
 	}
 
 	animationLooped(sprite, anim)
 	{
 		this.funnelCountdown--;
+		if (this.funnelCountdown == 1) {
+			for (let obj of this.funnelObjs) {
+				if (obj instanceof Salad) {
+					this.saladCount++;
+					this.saladBar.setPercent(this.saladCount / FunnelMaxSalad);
+				} else if (obj instanceof Tomato) {
+					this.tomatoCount++;
+					this.tomatoBar.setPercent(this.tomatoCount / FunnelMaxTomato);
+				} else if (obj instanceof Avocado) {
+					this.avocadoCount++;
+					this.avocadoBar.setPercent(this.avocadoCount / FunnelMaxAvocado);
+				}
+			}
+			this.funnelObjs = [];
+		}
 		if (this.funnelCountdown == 0) {
 			this.animations.stop();
 		}
@@ -252,18 +268,9 @@ class Funnel extends StaticObject
 
 	eatVegetable(obj)
 	{
-		if (obj instanceof Salad) {
-			this.saladCount++;
-			this.saladBar.setPercent(this.saladCount / FunnelMaxSalad);
-		} else if (obj instanceof Tomato) {
-			this.tomatoCount++;
-			this.tomatoBar.setPercent(this.tomatoCount / FunnelMaxTomato);
-		} else if (obj instanceof Avocado) {
-			this.avocadoCount++;
-			this.avocadoBar.setPercent(this.avocadoCount / FunnelMaxAvocado);
-		}
 		this.animations.play('idle', 10);
 		this.funnelCountdown = 3;
+		this.funnelObjs.push(obj);
 	}
 }
 
@@ -393,6 +400,7 @@ class BirdTotem extends StaticObject
 			this.canGet = true;
 			this.eatTimer = 2000 + Math.random() * 1000;
 			this.animations.play('eat');
+			game.state.getCurrentState().eatSfx.play();
 			this.maxMaggots = BirdMaxMaggotsBlood;
 			this.bar.setPercent(this.maggotCount / this.maxMaggots);
 		} else {
@@ -400,6 +408,7 @@ class BirdTotem extends StaticObject
 			this.spawnAnim = this.animations.add('spawn', [10,11,12,13], 8, false);
 			this.spawnAnim.onComplete.add(this.spawnAnimEnd, this);
 			this.animations.play('spawn');
+			game.state.getCurrentState().crowSfx.play();
 			this.maxMaggots = BirdMaxMaggots;
 		}
 	}
@@ -459,6 +468,7 @@ class BirdTotem extends StaticObject
 		} else {
 			this.eatTimer = 2000 + Math.random() * 1000;
 			this.animations.play('eat');
+			game.state.getCurrentState().eatSfx.play();
 		}
 	}
 }
@@ -603,6 +613,11 @@ class DraggableObject extends InteractiveObject
 		if (this.justSpawned && (this.x > 32 && this.x < game.world.width - 32)) {
 			this.justSpawned = false;
 		}
+	}
+
+	pickupSound()
+	{
+		// nothing
 	}
 
 	deadlyImpact()
@@ -902,6 +917,7 @@ class Cow extends DraggableObject
 		var gstate = game.state.getCurrentState();
 		if (this.maggotCount >= CowMaxMaggots) {
 			gstate.spawnCowZombie(this.x, this.y, this.direction);
+			gstate.cowToZombieSfx.play();
 			this.destroy();
 		}
 		gstate.spawnPoof(obj.x, obj.y);
@@ -938,6 +954,11 @@ class Cow extends DraggableObject
 				}
 				break;
 		}
+	}
+
+	pickupSound()
+	{
+		game.state.getCurrentState().mooSfx.play();
 	}
 
 	deadlyImpact()
@@ -997,9 +1018,15 @@ class GameState extends Phaser.State
 		game.load.spritesheet("funnel", "gfx/funnel.png", 96, 144);
 
 		
-		//game.load.spritesheet('propeller', 'gfx/propeller.png', 16, 64, 4);
 		game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
-		//game.load.audio('music', 'sfx/theme.ogg');
+		game.load.audio('music', 'sfx/theme.ogg');
+		game.load.audio('appearSfx', 'sfx/appear.ogg');
+		game.load.audio('mooSfx', 'sfx/cow_moo.ogg');
+		game.load.audio('splashSfx', 'sfx/cow_splash.ogg');
+		game.load.audio('cowToZombieSfx', 'sfx/cow_to_zombie.ogg');
+		game.load.audio('crowSfx', 'sfx/crow.ogg');
+		game.load.audio('eatSfx', 'sfx/eat.ogg');
+		game.load.audio('poofSfx', 'sfx/poof.ogg');
 	}
 
 	spawnGoreParticles(x, y, minVelX, maxVelX, amount)
@@ -1011,6 +1038,7 @@ class GameState extends Phaser.State
 		this.goreEmitter.setXSpeed(minVelX, maxVelX);
 
 		this.goreEmitter.start(false, 2000 * amount, 15, 20 * amount);
+		this.splashSfx.play();
 	}
 
 	spawnPoof(x, y)
@@ -1023,6 +1051,7 @@ class GameState extends Phaser.State
 			sprite.destroy();
 		});
 		anim.play(30);
+		game.state.getCurrentState().poofSfx.play();
 	}
 
 	spawnPoofBlood(x, y)
@@ -1041,6 +1070,7 @@ class GameState extends Phaser.State
 	spawnMaggot(obj)
 	{
 		new Maggot(obj.x, this.spawnObjY + 16, 'maggot');
+		game.state.getCurrentState().appearSfx.play();
 	}
 
 	spawnMaggotBlood(obj)
@@ -1124,6 +1154,16 @@ class GameState extends Phaser.State
 
 		// use this to spawn objects at that position when they should spawn on the floor
 		this.spawnObjY = 224;
+
+		this.music = game.add.audio('music');
+		this.music.play();
+		this.appearSfx = game.add.audio('appearSfx');
+		this.mooSfx = game.add.audio('mooSfx');
+		this.splashSfx = game.add.audio('splashSfx');
+		this.cowToZombieSfx = game.add.audio('cowToZombieSfx');
+		this.crowSfx = game.add.audio('crowSfx');
+		this.eatSfx = game.add.audio('eatSfx');
+		this.poofSfx = game.add.audio('poofSfx');
 	
 		// game physics
 		game.physics.startSystem(Phaser.Physics.P2JS);
@@ -1247,6 +1287,7 @@ class GameState extends Phaser.State
 			this.draggedBody.parent.sprite.bringToTop();
 			this.draggedBody.parent.sprite.isOnGround = false;
 			this.draggedBody.parent.sprite.animations.play('drag');
+			this.draggedBody.parent.sprite.pickupSound();
 			
 			var localPointInBody = [0, 0];
 			var physicsPos = [game.physics.p2.pxmi(mousePos.x), game.physics.p2.pxmi(mousePos.y)];    

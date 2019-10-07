@@ -83,5 +83,4 @@ other stuff:
 bugs:
 [x] side colliders for everything but cow
 [x] prevent charged pumpkin being fed to cow
-[ ] slow down vertical speed when throwing cows
-[ ] funnel bar should charge up with a slight delay
+[x] funnel bar should charge up with a slight delay
