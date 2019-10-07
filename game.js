@@ -1421,7 +1421,7 @@ class GameState extends Phaser.State
 			}
 		}, this);*/
 
-		this.addDebugKeys();
+		//this.addDebugKeys();
 
 		game.input.onDown.add(this.mouseClick, this);
 		game.input.addMoveCallback(this.mouseMove, this);
