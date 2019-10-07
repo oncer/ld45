@@ -1436,6 +1436,10 @@ class GameState extends Phaser.State
 			var gs = game.state.getCurrentState();
 			gs.mouseRelease(null);
 		}
+		game.input.mspointer.pointerOutCallback = function(context) {
+			var gs = game.state.getCurrentState();
+			gs.mouseRelease(null);
+		}
 
 
 		this.interactive = false;
@@ -1508,6 +1512,9 @@ class GameState extends Phaser.State
 			this.draggedBody.toLocalFrame(localPointInBody, physicsPos);
 
 			// use a revoluteContraint to attach mouseBody to the clicked body
+			if (this.mouseSpring !== undefined) {
+				game.physics.p2.removeConstraint(this.mouseSpring);
+			}
 			this.mouseSpring = this.game.physics.p2.createRevoluteConstraint(this.mouseBody, [0, 0], this.draggedBody, [game.physics.p2.mpxi(localPointInBody[0]), game.physics.p2.mpxi(localPointInBody[1]) ]);
 			this.draggedBody.parent.setCollisionGroup(this.draggedCG);
 			this.draggedBody.parent.collides([this.livingCG, this.staticCG]);
