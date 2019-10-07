@@ -318,6 +318,35 @@ class Funnel extends StaticObject
 		this.funnelObjs = [];
 		this.winTriggered = false;
 		this.winTimer = 0;
+		this.body.data.shapes[0].sensor = true;
+		var gs = game.state.getCurrentState();
+		this.body.setCollisionGroup(gs.funnelCG);
+		this.body.onBeginContact.add(this.contactBegin, this);
+		this.body.collides(gs.livingCG);
+	}
+
+	contactBegin(body, bodyB, shapeA, shapeB, equation)
+	{
+		var gs = game.state.getCurrentState();
+		var draggedSprite = undefined;
+		if (gs.draggedBody && gs.draggedBody.parent) {
+			draggedSprite = gs.draggedBody.parent.sprite;
+		}
+		if (body.sprite !== draggedSprite && this.funnelObjs.length === 0 && body.velocity.y > 0)
+		{
+			if ((body.sprite instanceof Salad && this.saladCount < FunnelMaxSalad)
+				|| (body.sprite instanceof Tomato && this.tomatoCount < FunnelMaxTomato)
+				|| (body.sprite instanceof Avocado && this.avocadoCount < FunnelMaxAvocado)) {
+
+
+				game.time.events.add(Phaser.Timer.SECOND*0.05, function(){
+					this.eatVegetable(body.sprite);
+					gs.spawnPoof(body.sprite.x, body.sprite.y, false);
+					gs.joySfx.play();
+					body.sprite.destroy();
+				}, this);
+			}
+		}
 	}
 
 	update()
@@ -476,6 +505,7 @@ class CorpseCowhuman extends StaticObject
 	spawnTree()
 	{
 		new Avocado(this.x, this.y);
+		game.state.getCurrentState().appearSfx.play();
 		//this.destroy();
 		this.animations.stop();
 	}
@@ -744,6 +774,7 @@ class Tomato extends DraggableObject
 	constructor(x, y)
 	{
 		super(x, y, 'tomato', 15, 15, 0, 0);
+		this.body.collides(game.state.getCurrentState().funnelCG);
 	}
 }
 
@@ -752,6 +783,7 @@ class Avocado extends DraggableObject
 	constructor(x, y)
 	{
 		super(x, y, 'avocado', 16, 20, 0, 0);
+		this.body.collides(game.state.getCurrentState().funnelCG);
 	}
 }
 
@@ -820,6 +852,11 @@ class Baby extends DraggableObject
 		this.bar.setAlpha(1);
 		this.bar.hide();
 	}
+
+	pickupSound()
+	{
+		game.state.getCurrentState().babySfx.play();
+	}
 }
 
 class PumpkinSalad extends DraggableObject
@@ -850,6 +887,7 @@ class Salad extends DraggableObject
 	constructor(x, y)
 	{
 		super(x, y, 'salad', 18, 18, 0, 0);
+		this.body.collides(game.state.getCurrentState().funnelCG);
 	}
 }
 
@@ -1065,7 +1103,11 @@ class Cow extends DraggableObject
 
 	pickupSound()
 	{
-		game.state.getCurrentState().mooSfx.play();
+		if (this.type === 'cowhuman') {
+			game.state.getCurrentState().cowHumanSfx.play();
+		} else {
+			game.state.getCurrentState().mooSfx.play();
+		}
 	}
 
 	deadlyImpact()
@@ -1256,6 +1298,8 @@ class GameState extends Phaser.State
 		game.load.audio('poofSfx', 'sfx/poof.ogg');
 		game.load.audio('joySfx', 'sfx/joy.ogg');
 		game.load.audio('pickupSfx', 'sfx/pickup.ogg');
+		game.load.audio('babySfx', 'sfx/baby.ogg');
+		game.load.audio('cowHumanSfx', 'sfx/cow_human.ogg');
 
 		//game.load.image('outro1', 'gfx/outro1.png');
 		game.load.spritesheet('scene', 'gfx/scene.png', 512, 288);
@@ -1285,6 +1329,8 @@ class GameState extends Phaser.State
 		this.poofSfx = game.add.audio('poofSfx');
 		this.pickupSfx = game.add.audio('pickupSfx');
 		this.joySfx = game.add.audio('joySfx');
+		this.babySfx = game.add.audio('babySfx');
+		this.cowHumanSfx = game.add.audio('cowHumanSfx');
 
 		// game physics
 		game.physics.startSystem(Phaser.Physics.P2JS);
@@ -1305,6 +1351,8 @@ class GameState extends Phaser.State
 
 		this.livingCG = game.physics.p2.createCollisionGroup();
 		this.livingGroup = game.add.group();
+
+		this.funnelCG = game.physics.p2.createCollisionGroup();
 
 		this.draggedCG = game.physics.p2.createCollisionGroup();
 		this.dragContactSprites = new Set();
@@ -1776,7 +1824,7 @@ class GameState extends Phaser.State
 				new Maggot(this.mouseBody.x, this.mouseBody.y, 'maggot');
 				break;
 			case 1:
-				new Cow(this.mouseBody.x, this.mouseBody.y, 'cow');
+				new Cow(this.mouseBody.x, this.mouseBody.y, 'cowhuman');
 				break;
 			case 2:
 				new Corpse(this.mouseBody.x, this.mouseBody.y);
@@ -1785,7 +1833,7 @@ class GameState extends Phaser.State
 				new CorpseZombie(this.mouseBody.x, this.mouseBody.y);
 				break;
 			case 4:
-				new PumpkinSalad(this.mouseBody.x, this.mouseBody.y);
+				new Baby(this.mouseBody.x, this.mouseBody.y);
 				break;
 			case 5:
 				new Seed(this.mouseBody.x, this.mouseBody.y);
