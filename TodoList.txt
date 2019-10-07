@@ -81,7 +81,7 @@ other stuff:
 [ ] maybe: title screen (before starting game; maybe text that tells you how to control the game (touch controls/the mouse))
 
 bugs:
-[ ] side colliders for everything but cow
+[x] side colliders for everything but cow
+[x] prevent charged pumpkin being fed to cow
 [ ] slow down vertical speed when throwing cows
-[ ] prevent charged pumpkin being fed to cow
 [ ] funnel bar should charge up with a slight delay

@@ -1377,7 +1377,7 @@ class GameState extends Phaser.State
 				gs.spawnPoof(sprite.x, sprite.y);
 			}
 		}
-		else if ((sprite instanceof Cow) && sprite.type === 'cow' && (dragSprite instanceof Pumpkin))
+		else if ((sprite instanceof Cow) && sprite.type === 'cow' && (dragSprite instanceof Pumpkin) && dragSprite.cornCounter == 0)
 		{
 			return function(){
 				gs.spawnCowPumpkin(sprite.x, sprite.y, sprite.direction);
