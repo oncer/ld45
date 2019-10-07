@@ -1,11 +1,41 @@
 const PumpkinMaxCorn = 2;
-const PumpkinZombieMaxSalads = 3;
+const PumpkinZombieMaxSalads = 2;
 const CowMaxMaggots = 2;
 const BirdMaxMaggots = 3;
 const BirdMaxMaggotsBlood = 2;
 const FunnelMaxSalad = 3;
 const FunnelMaxTomato = 2;
 const FunnelMaxAvocado = 1;
+
+/*
+class StorySprite extends Phaser.Sprite
+{
+	// either left(-1) or right(1)
+	constructor(direction, sprite, text)
+	{
+		super(game, 0, 0, sprite);
+		this.direction = direction;
+		this.anchor.set(0.5, 0);
+		if (direction > 0) {
+			var startX = -this.width / 2;
+			var targetX = game.world.width / 2;
+			this.x = startX;
+			var tween = game.add.tween(this).to( { x: targetX }, 1000, Phaser.Easing.Quadratic.In, true)
+			tween.onComplete.add(this.displayText, this);
+		} else {
+			var startX = game.world.width + this.width / 2;
+			var targetX = game.world.width / 2;
+			this.x = startX;
+			var tween = game.add.tween(this).to( { x: targetX }, 1000, Phaser.Easing.Quadratic.In, true)
+			tween.onComplete.add(this.displayText, this);
+		}
+	}
+
+	displayText(obj, tween)
+	{
+	}
+}
+*/
 
 class FunnelBar extends Phaser.Sprite
 {
@@ -241,6 +271,22 @@ class Funnel extends StaticObject
 		this.animations.getAnimation('idle').onLoop.add(this.animationLooped, this);
 		this.funnelCountdown = 0;
 		this.funnelObjs = [];
+		this.winTriggered = false;
+		this.winTimer = 0;
+	}
+
+	update()
+	{
+		if (!this.winTriggered && this.winTimer > 0) {
+			this.winTimer -= game.time.elapsed;
+			if (this.winTimer <= 0) {
+				this.winTriggered = true;
+				var gs = game.state.getCurrentState();
+				new SaladBowl(this.x, gs.spawnObjY);
+				gs.spawnPoof(this.x, gs.spawnObjY - 8, false);
+				gs.startOutro();
+			}
+		}
 	}
 
 	animationLooped(sprite, anim)
@@ -263,6 +309,10 @@ class Funnel extends StaticObject
 		}
 		if (this.funnelCountdown == 0) {
 			this.animations.stop();
+
+			if (this.saladCount == FunnelMaxSalad && this.tomatoCount == FunnelMaxTomato && this.avocadoCount == FunnelMaxAvocado) {
+				this.winTimer = 2000;
+			}
 		}
 	}
 
@@ -272,6 +322,7 @@ class Funnel extends StaticObject
 		this.funnelCountdown = 3;
 		this.funnelObjs.push(obj);
 	}
+
 }
 
 class Corpse extends StaticObject
@@ -391,7 +442,6 @@ class BirdTotem extends StaticObject
 		super(x, y, type, 32, 32, 0, 0);
 		this.type = type;
 		this.maggotCount = 0;
-		this.setDirection(Math.random() < 0.5 ? -1 : 1);
 		this.animations.add('eat', [4,5,6,7], 8, true);
 		this.eatTimer = 0;
 		this.seedTimer = 0;
@@ -410,6 +460,7 @@ class BirdTotem extends StaticObject
 			this.animations.play('spawn');
 			game.state.getCurrentState().crowSfx.play();
 			this.maxMaggots = BirdMaxMaggots;
+			this.setDirection(Math.random() < 0.5 ? -1 : 1);
 		}
 	}
 	
@@ -655,6 +706,14 @@ class Avocado extends DraggableObject
 	constructor(x, y)
 	{
 		super(x, y, 'avocado', 16, 20, 0, 0);
+	}
+}
+
+class SaladBowl extends DraggableObject
+{
+	constructor(x, y)
+	{
+		super(x, y, 'saladbowl', 40, 30, 0, 0);
 	}
 }
 
@@ -976,62 +1035,12 @@ class Cow extends DraggableObject
 		} else {
 			game.state.getCurrentState().spawnCorpse(this);
 		}
+		game.state.getCurrentState().cowsKilled++;
 	}
 }
 
 class GameState extends Phaser.State
 {
-	preload ()
-	{
-		game.load.image("bg", "gfx/background.png");
-		game.load.image("bgfloor", "gfx/background_floor.png");
-		game.load.image("bar_bg", "gfx/bar_bg.png");
-		game.load.image("bar_fg", "gfx/bar_fg.png", 28, 4);
-		game.load.image("bar_funnel_bg", "gfx/bar_funnel_bg.png");
-		game.load.image("bar_funnel_fg", "gfx/bar_funnel_fg.png", 28, 4);
-		game.load.spritesheet("cow", "gfx/cow.png", 32, 32);
-		game.load.spritesheet("cowzombie", "gfx/cow_zombie.png", 32, 32);
-		game.load.spritesheet("cowpumpkin", "gfx/cow_pumpkin.png", 32, 32);
-		game.load.spritesheet("cowvampire", "gfx/cow_vampire.png", 32, 32);
-		game.load.spritesheet("cowhuman", "gfx/cow_human.png", 32, 32);
-		game.load.spritesheet("corpse", "gfx/corpse.png", 32, 32);
-		game.load.spritesheet("corpsezombie", "gfx/corpse_zombie.png", 32, 32);
-		game.load.spritesheet("corpsepumpkin", "gfx/corpse_pumpkin.png", 32, 32);
-		game.load.spritesheet("corpsevampire", "gfx/corpse_vampire.png", 32, 32);
-		game.load.spritesheet("corpsecowhuman", "gfx/corpse_human.png", 32, 32);
-		game.load.spritesheet("maggot", "gfx/maggot.png", 32, 32);
-		game.load.spritesheet("maggotblood", "gfx/maggot_blood.png", 32, 32);
-		game.load.spritesheet("pumpkin", "gfx/pumpkin.png", 32, 32);
-		game.load.spritesheet("pumpkinzombie", "gfx/pumpkin_zombie.png", 32, 32);
-		game.load.spritesheet("pumpkinsalad", "gfx/pumpkin_salad.png", 32, 32);
-		game.load.spritesheet("seed", "gfx/seed.png", 32, 32);
-		game.load.spritesheet("seedtriangle", "gfx/seed_triangle.png", 32, 32);
-		game.load.spritesheet("gore", "gfx/gore.png", 16, 16);
-		game.load.spritesheet("poof", "gfx/poof.png", 32, 32);
-		game.load.spritesheet("poofblood", "gfx/poof_blood.png", 32, 32);
-		game.load.spritesheet("birdtotem", "gfx/bird_totem.png", 32, 32);
-		game.load.spritesheet("birdtotemblood", "gfx/bird_totem_blood.png", 32, 32);
-		game.load.spritesheet("salad", "gfx/salad.png", 32, 32);
-		game.load.spritesheet("vampirebat", "gfx/bat.png", 32, 32);
-		game.load.spritesheet("tomato", "gfx/tomato.png", 32, 32);
-		game.load.spritesheet("corn", "gfx/corn.png", 32, 32);
-		game.load.spritesheet("baby", "gfx/baby.png", 32, 32);
-		game.load.spritesheet("avocado", "gfx/avocado.png", 32, 32);
-		game.load.spritesheet("funnel", "gfx/funnel.png", 96, 144);
-
-		
-		game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
-		game.load.audio('music', 'sfx/theme.ogg');
-		game.load.audio('appearSfx', 'sfx/appear.ogg');
-		game.load.audio('mooSfx', 'sfx/cow_moo.ogg');
-		game.load.audio('splashSfx', 'sfx/cow_splash.ogg');
-		game.load.audio('cowToZombieSfx', 'sfx/cow_to_zombie.ogg');
-		game.load.audio('crowSfx', 'sfx/crow.ogg');
-		game.load.audio('eatSfx', 'sfx/eat.ogg');
-		game.load.audio('poofSfx', 'sfx/poof.ogg');
-		game.load.audio('pickupSfx', 'sfx/pickup.ogg');
-	}
-
 	spawnGoreParticles(x, y, minVelX, maxVelX, amount)
 	{
 		this.spawnPoofBlood(x, y);
@@ -1080,7 +1089,8 @@ class GameState extends Phaser.State
 
 	spawnMaggotBlood(obj)
 	{
-		new Maggot(obj.x, this.spawnObjY + 16, 'maggotblood');
+		var maggot = new Maggot(obj.x, this.spawnObjY + 16, 'maggotblood');
+		maggot.direction = obj.direction;
 	}
 	
 	spawnCorpse(obj)
@@ -1149,8 +1159,66 @@ class GameState extends Phaser.State
 		return cow;
 	}
 
+	preload ()
+	{
+		game.load.image("bg", "gfx/background.png");
+		game.load.image("bgfloor", "gfx/background_floor.png");
+		game.load.image("bar_bg", "gfx/bar_bg.png");
+		game.load.image("bar_fg", "gfx/bar_fg.png", 28, 4);
+		game.load.image("bar_funnel_bg", "gfx/bar_funnel_bg.png");
+		game.load.image("bar_funnel_fg", "gfx/bar_funnel_fg.png", 28, 4);
+		game.load.spritesheet("cow", "gfx/cow.png", 32, 32);
+		game.load.spritesheet("cowzombie", "gfx/cow_zombie.png", 32, 32);
+		game.load.spritesheet("cowpumpkin", "gfx/cow_pumpkin.png", 32, 32);
+		game.load.spritesheet("cowvampire", "gfx/cow_vampire.png", 32, 32);
+		game.load.spritesheet("cowhuman", "gfx/cow_human.png", 32, 32);
+		game.load.spritesheet("corpse", "gfx/corpse.png", 32, 32);
+		game.load.spritesheet("corpsezombie", "gfx/corpse_zombie.png", 32, 32);
+		game.load.spritesheet("corpsepumpkin", "gfx/corpse_pumpkin.png", 32, 32);
+		game.load.spritesheet("corpsevampire", "gfx/corpse_vampire.png", 32, 32);
+		game.load.spritesheet("corpsecowhuman", "gfx/corpse_human.png", 32, 32);
+		game.load.spritesheet("maggot", "gfx/maggot.png", 32, 32);
+		game.load.spritesheet("maggotblood", "gfx/maggot_blood.png", 32, 32);
+		game.load.spritesheet("pumpkin", "gfx/pumpkin.png", 32, 32);
+		game.load.spritesheet("pumpkinzombie", "gfx/pumpkin_zombie.png", 32, 32);
+		game.load.spritesheet("pumpkinsalad", "gfx/pumpkin_salad.png", 32, 32);
+		game.load.spritesheet("seed", "gfx/seed.png", 32, 32);
+		game.load.spritesheet("seedtriangle", "gfx/seed_triangle.png", 32, 32);
+		game.load.spritesheet("gore", "gfx/gore.png", 16, 16);
+		game.load.spritesheet("poof", "gfx/poof.png", 32, 32);
+		game.load.spritesheet("poofblood", "gfx/poof_blood.png", 32, 32);
+		game.load.spritesheet("birdtotem", "gfx/bird_totem.png", 32, 32);
+		game.load.spritesheet("birdtotemblood", "gfx/bird_totem_blood.png", 32, 32);
+		game.load.spritesheet("salad", "gfx/salad.png", 32, 32);
+		game.load.spritesheet("vampirebat", "gfx/bat.png", 32, 32);
+		game.load.spritesheet("tomato", "gfx/tomato.png", 32, 32);
+		game.load.spritesheet("corn", "gfx/corn.png", 32, 32);
+		game.load.spritesheet("baby", "gfx/baby.png", 32, 32);
+		game.load.spritesheet("avocado", "gfx/avocado.png", 32, 32);
+		game.load.spritesheet("funnel", "gfx/funnel.png", 96, 144);
+		game.load.spritesheet("saladbowl", "gfx/saladbowl.png", 48, 48);
+
+		
+		game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
+		game.load.audio('music', 'sfx/theme.ogg');
+		game.load.audio('appearSfx', 'sfx/appear.ogg');
+		game.load.audio('mooSfx', 'sfx/cow_moo.ogg');
+		game.load.audio('splashSfx', 'sfx/cow_splash.ogg');
+		game.load.audio('cowToZombieSfx', 'sfx/cow_to_zombie.ogg');
+		game.load.audio('crowSfx', 'sfx/crow.ogg');
+		game.load.audio('eatSfx', 'sfx/eat.ogg');
+		game.load.audio('poofSfx', 'sfx/poof.ogg');
+		game.load.audio('joySfx', 'sfx/joy.ogg');
+		game.load.audio('pickupSfx', 'sfx/pickup.ogg');
+
+		//game.load.image('storygirl', 'gfx/storygirl.png');
+	}
+
 	create ()
 	{
+		// bad conscience counter
+		this.cowsKilled = 0;
+
 		// cow reset timer
 		this.cowtimer = 1000;
 		
@@ -1170,6 +1238,7 @@ class GameState extends Phaser.State
 		this.eatSfx = game.add.audio('eatSfx');
 		this.poofSfx = game.add.audio('poofSfx');
 		this.pickupSfx = game.add.audio('pickupSfx');
+		this.joySfx = game.add.audio('joySfx');
 	
 		// game physics
 		game.physics.startSystem(Phaser.Physics.P2JS);
@@ -1270,11 +1339,20 @@ class GameState extends Phaser.State
 			gs.mouseRelease(null);
 		}
 
+
+		this.interactive = true;
+		//this.interactive = false;
+		//this.story1 = new StorySprite(1, 'storygirl', "Dad! I'm a vegan now!");
+		//game.add.existing(this.story1);
+
+
 		game.camera.flash('#000000');
 	}
 
 	mouseClick(pointer)
 	{
+		if (!this.interactive) return;
+
 		this.setMousePointerBounds();
 		
 		//console.log(pointer.position);
@@ -1583,6 +1661,13 @@ class GameState extends Phaser.State
 		this.setMousePointerBounds();		
 	}
 
+	startOutro()
+	{
+		this.interactive = false;
+		this.outroTimer = 2000;
+		this.joySfx.play();
+	}
+
 	// Add debug spawns keys here!
 	addDebugKeys() {
 		game.input.keyboard.addKey(Phaser.Keyboard.ONE).onDown.add(function() {this.functionKey(0);}, this);
@@ -1613,19 +1698,19 @@ class GameState extends Phaser.State
 				new CorpseZombie(this.mouseBody.x, this.mouseBody.y);
 				break;				
 			case 4:
-				new CorpsePumpkin(this.mouseBody.x, this.mouseBody.y);
+				new PumpkinSalad(this.mouseBody.x, this.mouseBody.y);
 				break;				
 			case 5:
 				new Seed(this.mouseBody.x, this.mouseBody.y);
 				break;
 			case 6:
-				new Tomato(this.mouseBody.x, this.mouseBody.y);
+				new Corn(this.mouseBody.x, this.mouseBody.y);
 				break;
 			case 7:
-				new PumpkinSalad(this.mouseBody.x, this.mouseBody.y);
+				new Salad(this.mouseBody.x, this.mouseBody.y);
 				break;
 			case 8:
-				new Corn(this.mouseBody.x, this.mouseBody.y);
+				new Tomato(this.mouseBody.x, this.mouseBody.y);
 				break;
 			case 9:
 				new Avocado(this.mouseBody.x, this.mouseBody.y);
