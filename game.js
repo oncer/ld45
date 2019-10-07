@@ -231,7 +231,7 @@ class Funnel extends StaticObject
 		this.animations.stop();
 		this.body.static = true;
 		//this.body.gravity = 0;
-		this.body.debug = true;
+		//this.body.debug = true;
 		this.saladCount = 0;
 		this.tomatoCount = 0;
 		this.avocadoCount = 0;
