@@ -65,12 +65,12 @@ sounds:
 [x] bird eat maggot -> eat.ogg
 [x] cow zombie transform -> cow_to_zombie.ogg
 [x] funnel activation -> use joy.ogg
-[ ] bat transformation
+[ ] bat transformation -> nope
 [x] bat cry, when it goes after cow -> use cow_to_zombie.ogg
 [x] corn grow (some kind of fanfare) -> use appear.ogg
-[ ] baby sounds
+[x] baby sounds
 [x] brutal splatter (human cow turns into human corpse) -> cow_corspe
-[ ] avocado grow (even cooler fanfare)
+[x] avocado grow (even cooler fanfare) -> appear.ogg
 
 other stuff:
 [ ] sounds / music
