@@ -54,13 +54,13 @@ graphics:
 [x] human-like cow corpse
 
 sounds:
-[ ] cow splatter (cow turns into corpse)
-[ ] cow moo (when you pick it up)
-[ ] zombie cow moo
-[ ] vampire cow moo
-[ ] human cow moo
-[ ] poof
-[ ] maggot appear
+[x] cow splatter (cow turns into corpse)
+[x] cow moo (when you pick it up)
+//[ ] zombie cow moo
+//[ ] vampire cow moo
+//[ ] human cow moo
+[x] poof
+[x] appear (for maggots and every other crop that spawns automatically)
 [ ] bird totem appear + crow sound
 [ ] bird eat maggot
 [ ] cow zombie transform
