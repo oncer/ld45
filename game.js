@@ -630,6 +630,7 @@ class VampireBat extends StaticObject
 
 	update()
 	{
+		if (!this.body) return;
 		this.body.angularVelocity = 0;
 
 		if (this.cow && !this.cow._frame && this.state !== 0) { // cow has been destroyed!!!
@@ -727,6 +728,7 @@ class DraggableObject extends InteractiveObject
 
 	update()
 	{
+		if (!this.body) return;
 		if (this.isOnGround)
 		{
 			this.body.rotation = 0;
@@ -912,6 +914,7 @@ class Maggot extends DraggableObject
 	animationLooped(sprite, anim)
 	{
 		if (!this.isOnGround) return;
+		if (!this.body) return;
 		switch (this.state)
 		{
 			case 0:
@@ -941,6 +944,7 @@ class Maggot extends DraggableObject
 
 	update()
 	{
+		if (!this.body) return;
 		super.update();
 		if (!this.isOnGround) return;
 		this.stateTimer -= game.time.elapsed;
@@ -1015,6 +1019,7 @@ class PumpkinZombie extends DraggableObject
 	update()
 	{
 		super.update();
+		if (!this.body) return;
 		if (!this.isOnGround) {
 			this.state = 0;
 			return;
@@ -1071,6 +1076,7 @@ class Cow extends DraggableObject
 	update()
 	{
 		super.update();
+		if (!this.body) return;
 		if (!this.isOnGround) return;
 		this.stateTimer -= game.time.elapsed;
 		switch (this.state)
@@ -1605,7 +1611,8 @@ class GameState extends Phaser.State
 					sprite.destroy()
 					dragSprite.destroy();
 					gs.spawnCowVampire(sprite.x, sprite.y, sprite.direction);
-					gs.spawnPoof(dragSprite.x, dragSprite.y, true);
+					gs.spawnPoof(dragSprite.x, dragSprite.y, false);
+					gs.cowToZombieSfx.play();
 				} else {
 					sprite.eatMaggot(dragSprite);
 				}
