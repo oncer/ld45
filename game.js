@@ -1,4 +1,4 @@
-const PumpkinMaxCorn = 2;
+const PumpkinMaxCorn = 1;
 const PumpkinZombieMaxSalads = 2;
 const CowMaxMaggots = 2;
 const BirdMaxMaggots = 3;
@@ -849,11 +849,13 @@ class Baby extends DraggableObject
 	constructor(x, y)
 	{
 		super(x, y, 'baby', 20, 20, 0, 0);
-		this.bar.percent = (PumpkinMaxCorn - 1) / PumpkinMaxCorn;
-		this.bar.percentTarget = 1;
-		this.bar.setVisible(true);
-		this.bar.setAlpha(1);
-		this.bar.hide();
+		if (PumpkinMaxCorn > 1) {
+			this.bar.percent = (PumpkinMaxCorn - 1) / PumpkinMaxCorn;
+			this.bar.percentTarget = 1;
+			this.bar.setVisible(true);
+			this.bar.setAlpha(1);
+			this.bar.hide();
+		}
 	}
 
 	pickupSound()
@@ -1501,10 +1503,12 @@ class GameState extends Phaser.State
 		//if (pointerPos.y > this.maxMouseY + 16 / game.camera.scale.y) return;
 
 		var bodies = game.physics.p2.hitTest(mousePos, this.livingGroup.children);
+		bodies.sort(this.spriteZSort);
 		this.draggedBody = undefined;
 		for (let body of bodies) {
 			if (body.parent.sprite instanceof DraggableObject && body.parent.sprite.canBeDragged) {
 				this.draggedBody = body;
+				break;
 			}
 		}
 		if (this.draggedBody)
@@ -1582,16 +1586,32 @@ class GameState extends Phaser.State
 		}
 	}
 
+	spriteZSort(c1, c2)
+	{
+		if ((c1 instanceof StaticObject) && (c2 instanceof DraggableObject)) {
+			return 1;
+		}
+		if ((c1 instanceof DraggableObject) && (c2 instanceof StaticObject)) {
+			return -1;
+		}
+		return c2.z - c1.z;
+	}
+
 	updateDragCombines()
 	{
 		this.dragContactFn = undefined;
 		if (!this.draggedBody) return;
 		var dragSprite = this.draggedBody.parent.sprite;
 		if (!dragSprite) return;
-		for (let sprite of this.dragContactSprites.values()) {
+
+		var candidates = Array.from(this.dragContactSprites);
+		// the object rendered in front has priority
+		candidates.sort(this.spriteZSort);
+		for (let sprite of candidates) {
 			var fn = this.getDragCombineFn(sprite, dragSprite);
 			if (fn) {
 				this.dragContactFn = fn;
+				break;
 			}
 		}
 		if (this.dragContactFn) {
@@ -1682,7 +1702,8 @@ class GameState extends Phaser.State
 				gs.spawnPoof(sprite.x, sprite.y, true);
 			}
 		}
-		else if ((sprite instanceof BirdTotem) && (dragSprite instanceof PumpkinSalad))
+		else if ((sprite instanceof BirdTotem) && (dragSprite instanceof PumpkinSalad) &&
+			(sprite.type !== 'birdtotemblood' || sprite.maggotCount === 0))
 		{
 			return function(){
 				sprite.destroy();
@@ -1718,10 +1739,20 @@ class GameState extends Phaser.State
 				gs.spawnPoof(sprite.x, sprite.y, true);
 			}
 		}
-		else if ((sprite instanceof Pumpkin) && (dragSprite instanceof Corn)) {
+		else if ((sprite instanceof Pumpkin) && (dragSprite instanceof Corn))
+		{
 			return function(){
 				sprite.eatCorn();
 				gs.spawnPoof(sprite.x, sprite.y, true);
+				dragSprite.destroy();
+			}
+		}
+		else if ((sprite instanceof Corpse) && (dragSprite instanceof Corn))
+		{
+			return function(){
+				new Baby(sprite.x, sprite.y);
+				gs.spawnPoof(sprite.x, sprite.y, true);
+				sprite.destroy();
 				dragSprite.destroy();
 			}
 		}
